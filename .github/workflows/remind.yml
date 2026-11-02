@@ -1,0 +1,25 @@
+name: Нагадування Español 2000
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+concurrency: remind
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+        with:
+          path: bot_state.json
+          key: botstate-${{ github.run_id }}
+          restore-keys: botstate-
+      - run: python3 bot/remind.py
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: bot_state.json
+          key: botstate-${{ github.run_id }}
