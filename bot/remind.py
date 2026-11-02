@@ -18,6 +18,18 @@ def btn(text="Відкрити Español 2000"):
     return {"inline_keyboard": [[{"text": text, "web_app": {"url": APP}}]]}
 
 st = json.load(open(F)) if os.path.exists(F) else {"offset": 0, "chats": {}}
+# 0) налаштування бота: кнопка «Вчити» біля поля вводу, команди, опис (повторно — раз на добу)
+if st.get("setup") != datetime.date.today().isoformat() + "v2":
+    me = api("getMe"); print("bot:", me.get("result", {}).get("username"))
+    print("menu:", api("setChatMenuButton", menu_button={"type": "web_app", "text": "Вчити", "web_app": {"url": APP}}))
+    print("cmds:", api("setMyCommands", commands=[
+        {"command": "start", "description": "Відкрити додаток"},
+        {"command": "time", "description": "Час нагадування, напр. /time 08:30"},
+        {"command": "off", "description": "Вимкнути нагадування"}]))
+    api("setMyDescription", description="Español 2000 — 2000 найчастіших іспанських слів за 60 днів: тести з повтором, історії з озвучкою, фрази вголос і щоденні нагадування.")
+    api("setMyShortDescription", short_description="Вчи 2000 іспанських слів і почни говорити")
+    st["setup"] = datetime.date.today().isoformat() + "v2"
+
 now = datetime.datetime.now(TZ)
 today = now.strftime("%Y-%m-%d")
 
