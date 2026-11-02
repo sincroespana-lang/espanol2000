@@ -335,8 +335,15 @@ function streak(){let s=0,t=today();if(!S.log[t])t--;while(S.log[t]&&(S.log[t].r
 function persist(){dirty=true;ls.set("e2k_state",JSON.stringify(S));clearTimeout(saveT);saveT=setTimeout(flush,2500);}
 // Telegram Mini App: прогрес на сервері бота
 const TGW=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData?window.Telegram.WebApp:null;
-const API="https://kzbffqisvjohnydxhniv.supabase.co/functions/v1/es-bot";
-async function tgApi(action,extra){const r=await fetch(API+"?r=api",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({action,initData:TGW.initData},extra||{}))});if(!r.ok)throw new Error(r.status);return r.json();}
+// хмара Telegram: до 1024 ключів по 4096 символів на користувача; ділимо стан на шматки
+const CS=TGW&&TGW.CloudStorage;
+const csSet=(k,v)=>new Promise((ok,no)=>CS.setItem(k,v,(e,r)=>e?no(e):ok(r)));
+const csGetMany=ks=>new Promise((ok,no)=>CS.getItems(ks,(e,r)=>e?no(e):ok(r||{})));
+async function cloudLoad(){const m=await csGetMany(["n"]);const n=+m.n||0;if(!n)return null;
+  const ks=[...Array(n).keys()].map(i=>"s"+i);const parts=await csGetMany(ks);return JSON.parse(ks.map(k=>parts[k]||"").join(""));}
+let lastSaved="";
+async function cloudSave(st){const str=JSON.stringify(st);if(str===lastSaved)return;const ch=[];for(let i=0;i<str.length;i+=4000)ch.push(str.slice(i,i+4000));
+  for(let i=0;i<ch.length;i++)await csSet("s"+i,ch[i]); await csSet("n",String(ch.length)); lastSaved=str;}
 function mergeRemote(d){if(!d)return;const rp=typeof d.p==="string"?JSON.parse(d.p||"{}"):(d.p||{}),rl=typeof d.log==="string"?JSON.parse(d.log||"{}"):(d.log||{});
   for(const id in rp){const a=S.p[id],b=rp[id];if(!a||(b[2]+b[3])>(a[2]+a[3])||(a[0]===0&&b[0]>0))S.p[id]=b;}
   for(const t in rl){if(!S.log[t]||(rl[t].r+rl[t].n)>(S.log[t].r+S.log[t].n))S.log[t]=rl[t];}
@@ -344,20 +351,20 @@ function mergeRemote(d){if(!d)return;const rp=typeof d.p==="string"?JSON.parse(d
   if(d.pri)S.pri=[...new Set([...(S.pri||[]),...d.pri])];}
 async function flush(){
   if(!dirty)return;
-  if(TGW){dirty=false;try{await tgApi("save",{state:{p:S.p,log:S.log,daily:S.daily,start:S.start,triage:S.triage,onb:S.onb,pri:S.pri||[]}});
-    $("syncTxt").textContent="Прогрес збережено · "+new Date().toLocaleTimeString().slice(0,5);}catch(e){dirty=true;$("syncTxt").textContent="Немає зв'язку — збережу, щойно з'явиться";}return;}
+  if(CS){dirty=false;try{await cloudSave({p:S.p,log:S.log,daily:S.daily,start:S.start,triage:S.triage,onb:S.onb,pri:S.pri||[]});
+    $("syncTxt").textContent="Прогрес збережено · "+new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});}catch(e){dirty=true;$("syncTxt").textContent="Немає зв'язку — збережу, щойно з'явиться";}return;}
   if(!dbRef)return; dirty=false;
   try{await dbRef.set({p:JSON.stringify(S.p),log:JSON.stringify(S.log),daily:S.daily,start:S.start,triage:S.triage,at:new Date().toISOString()});
-    $("syncTxt").textContent="Прогрес збережено в обліковому записі · "+new Date().toLocaleTimeString().slice(0,5);}
+    $("syncTxt").textContent="Прогрес збережено в обліковому записі · "+new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});}
   catch(e){dirty=true;$("syncTxt").textContent="Прогрес поки збережено лише на цьому пристрої";}
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flush();});
 try{const loc=JSON.parse(ls.get("e2k_state")||"null");if(loc&&loc.p)S=Object.assign(S,loc);}catch(e){}
 (async()=>{
   if(TGW){try{TGW.ready();TGW.expand();}catch(e){}
-    try{const d=await tgApi("load");mergeRemote(d.state);$("syncTxt").textContent="Прогрес зберігається на сервері";
+    try{if(!CS)throw 0;const d=await cloudLoad();mergeRemote(d);$("syncTxt").textContent="Прогрес зберігається в Telegram і однаковий на всіх пристроях";
       if(S.onb||Object.keys(S.p).length)$("onb").hidden=true; dirty=true;flush();renderToday();}
-    catch(e){$("syncTxt").textContent="Немає зв'язку з сервером — працюю на пристрої";}
+    catch(e){$("syncTxt").textContent="Не вдалося прочитати прогрес з Telegram — працюю на пристрої";}
     setInterval(()=>{if(dirty)flush();},20000); return;}
   try{
     const c=window.claude; if(!c||!c.use){$("syncTxt").textContent="Прогрес зберігається на цьому пристрої";return;}
@@ -507,9 +514,6 @@ function startTriage(){
 }
 function openQuiz(){Q.t0=Date.now();Q.l0=Object.assign({n:0,r:0,c:0,sp:0},S.log[today()]||{});$("todayHome").hidden=true;$("quizView").hidden=false;window.scrollTo({top:0});drawQ();}
 function closeQuiz(){stopAudio();
-  if(Q&&TGW){const L=S.log[today()]||{},a=Q.l0||{};const d=new Date();const day=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
-    const n=(L.n||0)-(a.n||0),r=(L.r||0)-(a.r||0)+(L.sp||0)-(a.sp||0),c=(L.c||0)-(a.c||0);
-    if(n+r>0)tgApi("log",{log:{day,kind:Q.mode,n,r,c,min:Math.round((Date.now()-Q.t0)/6000)/10}}).catch(()=>{});}
   Q=null;$("quizView").hidden=true;$("todayHome").hidden=false;flush();renderToday();}
 function grade(id,ok){
   const t=today(); const e=S.p[id]||[0,t,0,0];
