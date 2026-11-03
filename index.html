@@ -110,6 +110,15 @@ kbd{font:12px var(--body);border:1px solid var(--line);border-radius:4px;padding
 @media (prefers-reduced-motion:no-preference){.combo{animation:pop .25s ease-out}@keyframes pop{from{transform:scale(1.4)}}}
 body.inquiz .tabs{display:none} body.inquiz .wrap{padding-block-end:40px}
 .roundtag{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+/* головна кнопка завжди видна у маленькому вікні Telegram */
+.stickybar{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;padding-top:14px;background:linear-gradient(to bottom,transparent,var(--bg) 35%);z-index:4}
+#quizView #qNext,#quizView #qRound,#quizView #spShow{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:3;box-shadow:0 8px 20px rgba(0,0,0,.18)}
+#quizView .grade{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:3;background:var(--bg);padding-block:6px}
+/* компактна шапка історії */
+#v-stories h1{font-size:clamp(20px,5.5vw,26px)}
+#v-stories header{display:flex;flex-direction:column;gap:2px}
+#v-stories .legend{font-size:12px;gap:10px}
+@media (max-height:640px){#v-stories #eyebrow,#v-stories .legend span:last-child{display:none}#v-stories .stats{font-size:12px}.story{padding:14px}}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--fg);color:var(--bg);border-radius:12px;padding:10px 14px;font:500 14px var(--body);max-width:calc(100% - 32px);text-align:center}
 .mute{border:none;background:none;font-size:20px;cursor:pointer;padding:4px 6px;color:var(--muted)}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
@@ -201,7 +210,7 @@ body.inquiz .tabs{display:none} body.inquiz .wrap{padding-block-end:40px}
           <text id="ringTxt" x="50" y="56" text-anchor="middle" font-size="22">0</text>
         </svg>
         <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
-          <div><b id="learnedTxt">0</b> <span class="muted">з 2000 вивчено</span></div>
+          <div><b id="learnedTxt">0</b> <span class="muted">з 2000 слів у роботі</span></div>
           <div class="bar"><i id="paceBar" style="width:0"></i></div>
           <div class="muted" style="font-size:13px" id="paceTxt"></div>
           <div style="font-size:13px" id="barrio"></div>
@@ -213,10 +222,10 @@ body.inquiz .tabs{display:none} body.inquiz .wrap{padding-block-end:40px}
         <div class="kpi"><b id="kStreak">0</b><span id="kStreakL">днів поспіль</span></div>
       </div>
       <div class="card">
-        <h2>План на сьогодні · ~1 година</h2>
+        <h2 id="planH">План на сьогодні</h2>
         <div class="steps" id="steps">
           <button class="step" type="button" id="stQuiz"><i class="chk"></i><span><b>Слова</b><small id="stQuizSub">25 хв · нові + повтор</small></span><em>›</em></button>
-          <button class="step" type="button" id="stStory"><i class="chk"></i><span><b>Історія</b><small>15 хв · слухай і повторюй за диктором</small></span><em>›</em></button>
+          <button class="step" type="button" id="stStory"><i class="chk"></i><span><b>Історія</b><small id="stStorySub">слухай і повторюй за диктором</small></span><em>›</em></button>
           <button class="step" type="button" id="stSpeak"><i class="chk"></i><span><b>Говорити</b><small id="stSpeakSub">15 хв · фрази з української вголос</small></span><em>›</em></button>
         </div>
       </div>
@@ -251,7 +260,7 @@ body.inquiz .tabs{display:none} body.inquiz .wrap{padding-block-end:40px}
       <button class="chip" type="button" data-f="1">Вчу</button>
       <button class="chip" type="button" data-f="2">Вивчено</button>
       <button class="chip" type="button" data-f="0">Нові</button>
-      <button class="chip" type="button" data-f="k">З моїх 300</button>
+      <button class="chip" type="button" data-f="k">Схожі на українські</button>
     </div>
     <div class="list" id="wordList"></div>
     <button class="btn more" id="moreBtn" type="button">Показати ще</button>
@@ -279,7 +288,7 @@ body.inquiz .tabs{display:none} body.inquiz .wrap{padding-block-end:40px}
 
 <div class="onb" id="onb" hidden>
   <div class="onb-in">
-    <div class="hero"><div class="label" style="color:inherit;opacity:.85">Español 2000</div><h1>Заговори іспанською за 60 днів</h1><div style="opacity:.9">2000 найчастіших слів · година на день</div></div>
+    <div class="hero"><div class="label" style="color:inherit;opacity:.85">Español 2000</div><h1>Заговори іспанською за 60 днів</h1><div style="opacity:.9">2000 найчастіших слів · скільки маєш часу на день</div></div>
     <ol>
       <li><i>1</i><div><b>Слова з повтором</b><span class="muted">Нові слова щодня. Додаток сам повертає слово, коли ти його от-от забудеш.</span></div></li>
       <li><i>2</i><div><b>Історії з озвучкою</b><span class="muted">Слухаєш і повторюєш. Тапни будь-яке слово, щоб побачити переклад.</span></div></li>
@@ -293,7 +302,8 @@ body.inquiz .tabs{display:none} body.inquiz .wrap{padding-block-end:40px}
       </div>
       <span class="muted" style="font-size:13px">Можна змінити будь-коли.</span>
     </div>
-    <button class="btn main big" id="onbGo" type="button">Почати</button>
+    <button class="btn" id="onbZero" type="button" style="align-self:center">Я починаю з нуля — без перевірки знайомих слів</button>
+    <div class="stickybar"><button class="btn main big" id="onbGo" type="button">Почати</button></div>
   </div>
 </div>
 
@@ -459,14 +469,15 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>show(t.dataset.v));
 function renderToday(){
   if(!$("quizView").hidden)return;
   const c=counts(), day=Math.max(1,today()-S.start+1), target=Math.min(GOAL,Math.round(GOAL*day/DAYS));
-  const pct=c.learned/GOAL;
+  const pct=(c.learned+c.learning)/GOAL;
   $("ringArc").setAttribute("stroke-dasharray",`${(264*pct).toFixed(1)} 264`);
-  $("ringTxt").textContent=c.learned;
-  $("learnedTxt").textContent=c.learned;
+  const inw=c.learned+c.learning;
+  $("ringTxt").textContent=inw; $("learnedTxt").textContent=inw;
   const known=c.learned+c.learning, ms=Math.floor(known/100), nb=BARRIOS[Math.min(ms,BARRIOS.length-1)], nxt=(ms+1)*100;
   $("barrio").innerHTML=`📍 ${ms?`Ти вже в <b>${BARRIOS[ms-1]}</b> · `:""}до <b>${nb}</b> ще ${nxt-known} ${plural(nxt-known,"слово","слова","слів")}`;
   $("paceBar").style.width=Math.min(100,100*(c.learned+c.learning)/GOAL)+"%";
-  $("paceTxt").textContent=`День ${Math.min(day,DAYS)} з ${DAYS} · у роботі ${c.learned+c.learning} слів · план на сьогодні ${target}`;
+  const daysLeft=Math.ceil(Math.max(0,GOAL-inw)/Math.max(1,S.daily));
+  $("paceTxt").textContent=`Закріплено ${c.learned} · ${S.daily} нових на день → 2000 приблизно за ${daysLeft} ${plural(daysLeft,"день","дні","днів")}`;
   const due=dueList().length, left=Math.max(0,S.daily-newToday());
   $("kDue").textContent=due; $("kNew").textContent=`${newToday()}/${S.daily}`; $("kStreak").textContent=streak(); $("kStreakL").textContent=plural(streak(),"день","дні","днів")+" поспіль";
   const h=new Date().getHours();
@@ -475,12 +486,15 @@ function renderToday(){
   const L=S.log[today()]||{};
   const spk=Object.keys(S.p).filter(id=>S.p[id][0]>0&&LIB[id][3]).length;
   const qOn=due===0&&left===0, sOn=!!L.st, pOn=(L.sp||0)>=10;
-  $("stQuizSub").textContent=qOn?"Готово на сьогодні · можна ще 10 нових":`${left} нових · ${due} повторити`;
-  $("stSpeakSub").textContent=spk<5?"Відкриється після перших 5 слів":pOn?`Готово · ${L.sp} фраз`:`15 хв · фрази вголос · ${L.sp||0}/10`;
+  const mW=Math.max(2,Math.round(left*0.35+Math.min(due,60)*0.12)), mS=S.daily<=20?5:10, mP=S.daily<=20?5:10;
+  $("planH").textContent=`План на сьогодні · ~${(qOn?0:mW)+(sOn?0:mS)+(pOn?0:mP)} хв`;
+  $("stStorySub").textContent=sOn?"Готово":`~${mS} хв · слухай і повторюй за диктором`;
+  $("stQuizSub").textContent=qOn?"Готово на сьогодні · можна ще 10 нових":`~${mW} хв · ${left} нових · ${due} повторити`;
+  $("stSpeakSub").textContent=spk<5?"Відкриється після перших 5 слів":pOn?`Готово · ${L.sp} фраз`:`~${mP} хв · фрази вголос · ${L.sp||0}/10`;
   [["stQuiz",qOn],["stStory",sOn],["stSpeak",pOn]].forEach(([id,on])=>{$(id).classList.toggle("on",on);$(id).classList.remove("next");});
   const nx=[["stQuiz",qOn],["stStory",sOn],["stSpeak",pOn]].find(x=>!x[1]); if(nx)$(nx[0]).classList.add("next");
   $("stSpeak").disabled=spk<5;
-  const go=!S.triage?["Почати: слова, які ти вже знаєш · 2 хв",startTriage]:!qOn?[left>0?`Слова · раунд ${roundInfo().no} з ${roundInfo().total}`:`Повторити · ${due}`,()=>$("stQuiz").click()]:!sOn?["Далі: історія",()=>show("stories")]:!pOn&&spk>=5?["Далі: говорити",startSpeak]:["Ще 10 нових слів",()=>startQuiz(10)];
+  const go=!S.triage?["Почати · 3 хв",startTriage]:!qOn?[left>0?`Слова · раунд ${roundInfo().no} з ${roundInfo().total}`:`Повторити · ${due}`,()=>$("stQuiz").click()]:!sOn?["Далі: історія",()=>show("stories")]:!pOn&&spk>=5?["Далі: говорити",startSpeak]:["Ще 10 нових слів",()=>startQuiz(10)];
   $("heroGo").textContent=go[0]+" →"; $("heroGo").onclick=go[1];
   document.querySelectorAll("[data-daily]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.daily===S.daily));
   renderHist();
@@ -500,6 +514,7 @@ function renderHist(){
 let pace=33;
 document.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{pace=+b.dataset.p;document.querySelectorAll("[data-p]").forEach(x=>x.setAttribute("aria-pressed",x===b));});
 $("onbGo").onclick=()=>{S.onb=true;S.daily=pace;S.start=today();persist();$("onb").hidden=true;startTriage();};
+$("onbZero").onclick=()=>{S.onb=true;S.triage=true;S.daily=pace;S.start=today();persist();$("onb").hidden=true;renderToday();startQuiz();};
 document.querySelectorAll("[data-daily]").forEach(b=>b.onclick=()=>{S.daily=+b.dataset.daily;persist();renderToday();});
 
 // ===== ТЕСТ =====
@@ -581,11 +596,12 @@ function drawQ(){
     const tri=Q.mode==="triage";
     const knew=Q.items.slice(0,Q.base).filter(x=>S.p[x.id]&&S.p[x.id][0]>=3).length;
     const msg=tri?`Знаєш ${knew} з ${Q.base}. Знайомі перевіримо через 2 дні, решту вчимо першими.`:
-      `${Q.ok} з ${Q.base} з першого разу · сьогодні ${newToday()}/${S.daily} нових`;
+      Q.mode==="speak"?`Сказано ${Q.base} ${plural(Q.base,"фразу","фрази","фраз")} вголос`
+      :`+${Q.newN||0} ${plural(Q.newN||0,"нове слово","нові слова","нових слів")} · сьогодні ${newToday()} з ${S.daily}${Q.base?` · точність ${Math.round(100*Q.ok/Q.base)}%`:""}`;
     if(tri){S.triage=true;persist();}
-    const pct=Q.base?Q.ok/Q.base:1, title=tri?"¡Hecho!":pct>=.85?"¡Muy bien!":pct>=.6?"¡Bien!":"¡Vamos!";
+    const pct=Q.base?Q.ok/Q.base:1, title=tri?"¡Hecho!":pct>=.85?"¡Muy bien!":"¡Bien hecho!";
     const miss=Object.keys(Q.fails).map(Number);
-    const missHtml=miss.length?`<div class="missed"><div class="qhint" style="display:block">Слова, на яких помилився</div>${miss.map(id=>`<div>${spkBtn(id,"w",false)}<span><b>${esc(LIB[id][0])}</b> — ${esc(LIB[id][6])}</span></div>`).join("")}</div>`:"";
+    const missHtml=miss.length?`<div class="missed"><div class="qhint" style="display:block">Ще потренуємо</div>${miss.map(id=>`<div>${spkBtn(id,"w",false)}<span><b>${esc(LIB[id][0])}</b> — ${esc(LIB[id][6])}</span></div>`).join("")}</div>`:"";
     const more=tri&&Q.rest>0?`<button class="btn big" id="qMore" type="button">Ще ${Math.min(60,Q.rest)} знайомих слів</button>`:"";
     const leftNew=Math.max(0,S.daily-newToday()), dueN=dueList().length, ri=roundInfo();
     const nextRound=!tri&&Q.mode==="quiz"&&(leftNew>0||dueN>0);
@@ -595,7 +611,7 @@ function drawQ(){
       :`<button class="btn main big" id="qBack" type="button">${tri?"Далі: нові слова →":"Готово"}</button>`}${more}</div>`;
     if($("qRound"))$("qRound").onclick=()=>{closeQuiz();startQuiz();};
     V.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>libSay(+b.dataset.say,b.dataset.kind).catch(()=>{}));
-    if(pct>=.6&&!tri)confetti(); hap("ok");
+    confetti(); hap("ok");
     $("qBack").onclick=()=>{closeQuiz();if(tri){const b=$("heroGo");if(b)b.click();}};
     if($("qMore"))$("qMore").onclick=()=>{Q=null;startTriage();};return;
   }
@@ -603,15 +619,15 @@ function drawQ(){
   let h=head();
   if(it.type==="intro"){
     h+=`<div class="qcard"><div class="qhint">Нове слово</div><div class="qword">${esc(e[0])}</div><div class="qsub">${esc(e[1])}</div>${spkBtn(it.id,"w",true)}
-      ${e[3]?`<div class="qex">${esc(e[3])}</div><div class="qexuk">${esc(e[4])}</div>${spkBtn(it.id,"x",false)}`:""}${e[5]?`<span class="tag k">з твоїх 300</span>`:""}</div>
-      <button class="btn main big" id="qNext" type="button"><kbd>Enter</kbd>Запам'ятав, далі</button>`;
+      ${e[3]?`<div class="qex">${esc(e[3])}</div><div class="qexuk">${esc(e[4])}</div>${spkBtn(it.id,"x",false)}`:""}</div>
+      <button class="btn main big" id="qNext" type="button"><kbd>Enter</kbd>Далі</button>`;
     V.innerHTML=h;
-    $("qNext").onclick=()=>{if(!(S.p[it.id]&&S.p[it.id][0]>0)){S.p[it.id]=[1,today(),0,0];logAdd("n",1);persist();}hap("tap");Q.i++;drawQ();}; libSay(it.id,"w").catch(()=>{});
+    $("qNext").onclick=()=>{if(!(S.p[it.id]&&S.p[it.id][0]>0)){S.p[it.id]=[1,today(),0,0];logAdd("n",1);Q.newN=(Q.newN||0)+1;persist();}hap("tap");Q.i++;drawQ();}; if(!S.mute)libSay(it.id,"w").catch(()=>{});
   } else if(it.type==="tri"){
-    h+=`<div class="qcard"><div class="qhint">Знаєш це слово?</div><div class="qword">${esc(e[0])}</div><div class="qsub" id="triUk" style="visibility:hidden">${esc(e[1])}</div>${spkBtn(it.id,"w",true)}</div>
-      <div class="grade"><button class="btn big no" id="tNo" type="button"><kbd>←</kbd>Не впевнений</button><button class="btn big ok" id="tYes" type="button"><kbd>→</kbd>Знаю</button></div>
+    h+=`<div class="qcard"><div class="qhint">Знаєш це слово? · ${Q.i+1} з ${Q.base}</div><div class="qword">${esc(e[0])}</div><div class="qsub" id="triUk" style="visibility:hidden">${esc(e[1])}</div>${spkBtn(it.id,"w",true)}</div>
+      <div class="grade"><button class="btn big no" id="tNo" type="button"><kbd>←</kbd>Ще не знаю</button><button class="btn big ok" id="tYes" type="button"><kbd>→</kbd>Знаю</button></div>
       <button class="btn" id="tSkip" type="button" style="align-self:center">Пропустити решту</button>`;
-    V.innerHTML=h; libSay(it.id,"w").catch(()=>{});
+    V.innerHTML=h; if(!S.mute)libSay(it.id,"w").catch(()=>{});
     const step=(know)=>{ $("triUk").style.visibility="visible";
       const t=today(); if(know)S.p[it.id]=[3,t+2,1,0]; else {S.pri=S.pri||[];if(!S.pri.includes(it.id))S.pri.push(it.id);S.p[it.id]=[0,t,0,0];} persist();
       hap("tap"); setTimeout(()=>{Q.i++;busy=false;drawQ();},know?300:800);};
@@ -622,7 +638,7 @@ function drawQ(){
     h+=`<div class="qcard"><div class="qhint">Скажи іспанською вголос</div><div class="qword" style="font-size:clamp(22px,6vw,30px)">${esc(e[4])}</div><div id="spHint" hidden class="hintw">${esc(formIn(e[3],e[0]))}</div>${it.listen?`<div class="qexuk">Спершу послухай, потім скажи сам</div>`:""}
       <div id="spAns" hidden style="display:flex;flex-direction:column;gap:8px;align-items:center"><div class="qex">${markWord(e[3],e[0])}</div>${spkBtn(it.id,"x",true)}</div></div>
       <div class="grade" id="spBtns"><button class="btn big" id="spHintBtn" type="button">Підказка</button><button class="btn main big" id="spShow" type="button"><kbd>Enter</kbd>Відповідь</button></div>
-      <div class="grade" id="spGrade" hidden><button class="btn big no" id="gNo" type="button"><kbd>←</kbd>Не вийшло</button><button class="btn big ok" id="gYes" type="button"><kbd>→</kbd>Сказав</button></div>`;
+      <div class="grade" id="spGrade" hidden><button class="btn big no" id="gNo" type="button"><kbd>←</kbd>Ще не вийшло</button><button class="btn big ok" id="gYes" type="button"><kbd>→</kbd>Вийшло</button></div>`;
     V.innerHTML=h;
     let hints=0;
     $("spHintBtn").onclick=()=>{hints++;const hw=$("spHint");hw.hidden=false;
@@ -641,7 +657,7 @@ function drawQ(){
       `<div class="qhint">Що означає?</div><div class="qword">${esc(e[0])}</div>${spkBtn(it.id,"w",false)}`;
     h+=`<div class="qcard">${prompt}</div><div class="opts">${opts.map((o,k)=>`<button class="opt" type="button" data-o="${esc(o)}"><kbd>${k+1}</kbd>${esc(o)}</button>`).join("")}</div><div id="after"></div>`;
     V.innerHTML=h;
-    if(aud||!prod){const p=libSay(it.id,"w");if(aud)p.catch(()=>{const qc=V.querySelector(".qcard");if(qc)qc.innerHTML=`<div class="qhint">Що означає? (звук не завантажився)</div><div class="qword">${esc(e[0])}</div>`;});else p.catch(()=>{});}
+    if((aud||!prod)&&!S.mute){const p=libSay(it.id,"w");if(aud)p.catch(()=>{const qc=V.querySelector(".qcard");if(qc)qc.innerHTML=`<div class="qhint">Що означає? (звук не завантажився)</div><div class="qword">${esc(e[0])}</div>`;});else p.catch(()=>{});}
     let answered=false;
     V.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
       if(answered)return; answered=true;
@@ -653,7 +669,7 @@ function drawQ(){
       else { if(first)grade(it.id,false); Q.fails[it.id]=1;
         let pos=Q.i+1,seen=0; while(pos<Q.items.length&&seen<3){if(Q.items[pos].type!=="intro")seen++;pos++;}
         Q.items.splice(pos,0,{id:it.id,type:"rec"}); }
-      if(prod||aud)libSay(it.id,"w").catch(()=>{});
+      if(prod||aud)if(!S.mute)libSay(it.id,"w").catch(()=>{});
       $("after").innerHTML=`<div class="card" style="gap:6px"><div><b>${esc(e[0])}</b> — ${esc(e[1])}</div>${e[3]?`<div class="qex" style="font-size:16px">${esc(e[3])}</div><div class="qexuk">${esc(e[4])}</div>`:""}</div>
         <button class="btn main big" id="qNext" type="button" style="margin-top:8px">Далі</button>`;
       $("qNext").onclick=()=>{Q.i++;drawQ();};
@@ -709,7 +725,7 @@ let sheetCtx=null;
 function openLibSheet(id){
   const e=LIB[id], st=status(id); sheetCtx={kind:"lib",id};
   $("shWord").textContent=e[0]; $("shUk").textContent=e[1];
-  $("shMeta").innerHTML=(st===2?`<span class="tag n">вивчено</span>`:st===1?`<span class="tag l">вчу</span>`:`<span class="tag">ще не почате</span>`)+(e[5]?`<span class="tag k">з твоїх 300</span>`:"");
+  $("shMeta").innerHTML=(st===2?`<span class="tag n">вивчено</span>`:st===1?`<span class="tag l">вчу</span>`:`<span class="tag">ще не почате</span>`)+(e[5]?`<span class="tag k">схоже на українське</span>`:"");
   $("shSent").innerHTML=`<span style="color:var(--fg)">${esc(e[3])}</span><br>${esc(e[4])}`; $("shSentRow").hidden=!e[3];
   $("shLearn").hidden=st!==0; $("sheet").hidden=false; libSay(id,"w").catch(()=>{});
 }
@@ -798,7 +814,7 @@ $("story").addEventListener("click",e=>{
   sheetCtx={kind:"story",key,sent:si,lib};
   $("shWord").textContent=w.textContent; $("shUk").textContent=g?g[0]:"—";
   const lemma=g&&g[1]&&g[1].toLowerCase()!==key?`<span>від <b>${esc(g[1])}</b></span>`:"";
-  const tag=g?(g[2]===1?`<span class="tag k">з твоїх 300</span>`:g[2]===0?`<span class="tag n">нове</span>`:""):"";
+  const tag="";
   const st=lib>=0?status(lib):-1;
   const lt=st===2?`<span class="tag n">вивчено</span>`:st===1?`<span class="tag l">вчу</span>`:"";
   $("shMeta").innerHTML=tag+lt+lemma; $("shSent").textContent=St.s[si][1]; $("shSentRow").hidden=false;
