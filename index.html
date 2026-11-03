@@ -146,6 +146,14 @@ html.big .sh-uk{font-size:21px} html.big .sh-sent{font-size:16px}
 .cando{border:1.5px solid var(--line);background:var(--paper);border-radius:99px;padding:6px 10px;font:600 13px var(--body);cursor:pointer;color:var(--muted);white-space:nowrap}
 .cando[aria-pressed="true"]{border-color:var(--new);background:var(--new-soft);color:var(--new)}
 .cheat{position:fixed;inset:0;z-index:35;background:var(--bg);overflow:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:calc(16px + env(safe-area-inset-top,0px)) 40px}
+.recbox{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;width:100%}
+.recbox .recb.on{background:var(--bad,#c0392b);color:#fff;border-color:transparent}
+.recbox canvas{width:100%;height:64px;display:block;border-radius:10px;background:var(--bg)}
+.recbox .rmsg{width:100%;text-align:center;font-size:14px;color:var(--muted)}
+.wk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.wk div{background:var(--bg);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.wk b{font-size:22px;font-family:var(--display)} .wk span{font-size:13px;color:var(--muted)} .wk em{font-style:normal;font-size:13px}
+.num.vs{flex:0 0 auto;max-width:none;padding:0 12px;white-space:nowrap}
 .cheat .ph{font-family:var(--display);font-weight:800;font-size:clamp(26px,7vw,40px);line-height:1.15;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
 .cheat .ph small{display:block;font:500 16px var(--body);color:var(--muted)}
 .pic{font-size:64px;line-height:1.1} .pic.sm{font-size:44px}
@@ -193,7 +201,7 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
 .more{align-self:center}
 
 /* Історії */
-.nums{display:flex;gap:6px}
+.nums{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.nums::-webkit-scrollbar{display:none}.num{flex-shrink:0}
 .num{flex:1 1 0;min-width:28px;max-width:44px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);font:600 15px var(--display);cursor:pointer;font-variant-numeric:tabular-nums}
 .num[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .num.done{border-color:var(--new);color:var(--new)}
@@ -283,6 +291,11 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
           <button class="chip" type="button" data-daily="45">45</button>
         </div>
       </div>
+      <div class="card" id="weekCard">
+        <div class="row" style="justify-content:space-between"><h2>Мій тиждень</h2><span class="muted" id="wkRange" style="font-size:13px"></span></div>
+        <div class="wk" id="wkGrid"></div>
+        <button class="btn" id="wkSend" type="button">📤 Надіслати звіт у чат бота</button>
+      </div>
       <div class="card">
         <h2>Історія занять</h2>
         <div class="hist" id="hist" aria-label="Карток за останні 14 днів"></div>
@@ -335,6 +348,7 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
       </div>
     </div>
     <header><div class="label" id="eyebrow"></div><h1 id="title"></h1><div class="muted" id="titleUk"></div></header>
+    <div class="row" id="vsRow" hidden><input class="search" id="vsQ" placeholder="Про що? Напр. кава, школа, perro" maxlength="30" style="flex:1;min-width:0"><button class="btn main" id="vsGo" type="button">Скласти</button></div>
     <div class="stats" id="stats"></div>
     <div class="legend"><span><i class="sw"></i>знайоме</span><span><i class="sw n"></i>нове</span><span>Тапни слово — переклад і звук</span></div>
     <article class="story" id="story"></article>
@@ -396,6 +410,7 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
     <div class="sh-uk" id="shUk"></div>
     <div class="sh-meta" id="shMeta"></div>
     <div class="sh-sent" id="shSentRow"><button class="btn" id="shSentPlay" type="button">▶</button><span id="shSent"></span></div>
+    <div id="shRec"></div>
     <button class="btn" id="shLearn" type="button" hidden>Вчити це слово першим</button>
   </div>
 </div>
@@ -739,7 +754,7 @@ function drawQ(){
     $("tSkip").onclick=()=>{S.triage=true;persist();Q.base=Q.i;Q.rest=0;Q.items.length=Q.i;drawQ();};
   } else if(it.type==="speak"){
     h+=`<div class="qcard"><div class="qhint">Скажи іспанською вголос</div><div class="qword" style="font-size:clamp(22px,6vw,30px)">${esc(e[4])}</div><div id="spHint" hidden class="hintw">${esc(formIn(e[3],e[0]))}</div>${it.listen?`<div class="qexuk">Спершу послухай, потім скажи сам</div>`:""}
-      <div id="spAns" hidden style="display:flex;flex-direction:column;gap:8px;align-items:center"><div class="qex">${markWord(e[3],e[0])}</div>${spkBtn(it.id,"x",true)}</div></div>
+      <div id="spAns" hidden style="display:flex;flex-direction:column;gap:8px;align-items:center"><div class="qex">${markWord(e[3],e[0])}</div>${spkBtn(it.id,"x",true)}<div id="spRec" style="width:100%"></div></div></div>
       <div class="grade" id="spBtns"><button class="btn big" id="spHintBtn" type="button">Підказка</button><button class="btn main big" id="spShow" type="button"><kbd>Enter</kbd>Відповідь</button></div>
       <div class="grade" id="spGrade" hidden><button class="btn big no" id="gNo" type="button"><kbd>←</kbd>Ще не вийшло</button><button class="btn big ok" id="gYes" type="button"><kbd>→</kbd>Вийшло</button></div>`;
     V.innerHTML=h;
@@ -747,7 +762,8 @@ function drawQ(){
     $("spHintBtn").onclick=()=>{hints++;const hw=$("spHint");hw.hidden=false;
       if(hints===1){hw.textContent=formIn(e[3],e[0]);} else {hw.textContent=e[3].split(/\s+/).slice(0,2).join(" ")+" …";$("spHintBtn").disabled=true;}};
     if(it.listen)setTimeout(()=>libSay(it.id,"x").catch(()=>{}),250);
-    $("spShow").onclick=()=>{$("spAns").hidden=false;$("spBtns").hidden=true;$("spHint").hidden=false;$("spGrade").hidden=false;libSay(it.id,"x").catch(()=>{});};
+    $("spShow").onclick=()=>{$("spAns").hidden=false;$("spBtns").hidden=true;$("spHint").hidden=false;$("spGrade").hidden=false;libSay(it.id,"x").catch(()=>{});
+      const o=(LA.x||[])[it.id]; if(o)recMount($("spRec"),()=>({src:libSrc("x",o),o:[o[1],o[2]]}));};
     let gb=false;
     $("gYes").onclick=()=>{if(gb)return;gb=true;if(!Q.fails[it.id])Q.ok++;logAdd("sp",1);persist();Q.i++;drawQ();};
     $("gNo").onclick=()=>{if(gb)return;gb=true;Q.fails[it.id]=1;logAdd("sp",1);persist();Q.items.push({id:it.id,type:"speak"});Q.i++;drawQ();};
@@ -832,10 +848,10 @@ function openLibSheet(id){
   $("shSent").innerHTML=`<span style="color:var(--fg)">${esc(e[3])}</span><br>${esc(e[4])}`; $("shSentRow").hidden=!e[3];
   $("shLearn").hidden=st!==0; $("sheet").hidden=false; libSay(id,"w").catch(()=>{});
 }
-function closeSheet(){$("sheet").hidden=true;sheetCtx=null;if(selEl){selEl.classList.remove("sel");selEl=null;}}
+function closeSheet(){$("sheet").hidden=true;sheetCtx=null;recReset();if($("shRec"))$("shRec").innerHTML="";if(selEl){selEl.classList.remove("sel");selEl=null;}}
 $("shClose").onclick=closeSheet;
 document.addEventListener("click",e=>{if($("sheet").hidden)return;if(e.target.closest("#sheet,.w,.li,[data-say]"))return;closeSheet();},true);
-$("shSpeak").onclick=()=>{if(!sheetCtx)return; if(sheetCtx.kind==="dlg"){const o=DLG[curD].w[sheetCtx.key];if(o)playSeg(dwSrc(curD),o[0],o[1],0.75).catch(()=>{});return;} if(sheetCtx.kind==="lib")libSay(sheetCtx.id,"w").catch(()=>{}); else {stopStory();sayWord(sheetCtx.key);}};
+$("shSpeak").onclick=()=>{if(!sheetCtx)return; if(sheetCtx.kind==="dlg"){const o=DLG[curD].w[sheetCtx.key];if(o)playSeg(dwSrc(curD),o[0],o[1],0.75).catch(()=>{});return;} if(sheetCtx.kind==="lib")libSay(sheetCtx.id,"w").catch(()=>{}); else {stopStory();sayWord(sheetCtx.key,sheetCtx.sent);}};
 $("shSentPlay").onclick=()=>{if(!sheetCtx)return; if(sheetCtx.kind==="lib")libSay(sheetCtx.id,"x").catch(()=>{}); else {stopStory();saySent(sheetCtx.sent);}};
 $("shLearn").onclick=()=>{const id=sheetCtx&&sheetCtx.lib;const lid=sheetCtx.kind==="lib"?sheetCtx.id:id;if(lid==null||lid<0)return;
   S.pri=S.pri||[]; S.pri=[lid].concat(S.pri.filter(x=>x!==lid)); persist(); $("shLearn").hidden=true;$("shMeta").insertAdjacentHTML("beforeend",`<span class="tag l">прийде першим у тесті</span>`);};
@@ -845,21 +861,51 @@ let cur=+(ls.get("e2k_story")||0), voiceKey="f", storyPlaying=false, selEl=null,
 if(!(cur>=0&&cur<STORIES.length))cur=0;
 const doneSt=new Set([...(ls.get("hv_done")||"").split(",").filter(Boolean).map(Number),...(S.sd||[])]);
 const TOK=/([A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)/;
-const sSrc=()=>KID?`audio/ks${String(cur+1).padStart(2,"0")}.mp3`:`audio/s${String(cur+1).padStart(2,"0")}${voiceKey}.mp3`,
-      wSrc=()=>KID?`audio/ksw${String(cur+1).padStart(2,"0")}.mp3`:`audio/w${String(cur+1).padStart(2,"0")}${voiceKey}.mp3`;
+const sSrc=(si=cur)=>KID?`audio/ks${String(si+1).padStart(2,"0")}.mp3`:`audio/s${String(si+1).padStart(2,"0")}${voiceKey}.mp3`,
+      wSrc=(si=cur)=>KID?`audio/ksw${String(si+1).padStart(2,"0")}.mp3`:`audio/w${String(si+1).padStart(2,"0")}${voiceKey}.mp3`;
+// «Історія з моїх слів»: збирається з речень усіх історій, де найбільше слів уже в навчанні; звук — з готових спрайтів
+let VS=null, seqInv=[];
+const curSt=()=>cur<0&&VS?VS:STORIES[cur];
+function segOf(i){if(cur<0){const [si,k]=VS.seg[i];return {src:sSrc(si),o:STORIES[si].a[voiceKey].s[k]};}return {src:sSrc(),o:STORIES[cur].a[voiceKey].s[seqMap[i]]};}
+function buildVS(q){
+  q=(q||"").trim().toLowerCase(); const qs=q.length>4?q.slice(0,-1):q;
+  const kn=l=>l>=0&&status(l)>0, wins=[];
+  STORIES.forEach((St,si)=>{let block=[],k=0;
+    const flush=()=>{for(let a=0;a<block.length;a++)for(let L=2;L<=4&&a+L<=block.length;L++){const w=block.slice(a,a+L);let tot=0,ok=0,hit=!q;
+        w.forEach(x=>{tot+=x.tot;ok+=x.ok;if(x.hit)hit=true;}); if(hit&&tot>=4)wins.push({si,w,r:ok/tot,L});} block=[];};
+    St.s.forEach((s,i)=>{if(s===0){flush();return;}
+      let tot=0,ok=0,hit=false;
+      s[0].split(TOK).forEach((p,j)=>{if(j%2!==1)return;const lw=p.toLowerCase(),g=St.g[lw];if(q&&lw.startsWith(qs))hit=true;if(!g||g[3]<0)return;tot++;if(kn(g[3]))ok++;
+        if(q&&((g[1]||"").toLowerCase().startsWith(qs)||(g[0]||"").toLowerCase().includes(qs)))hit=true;});
+      if(q&&s[1].toLowerCase().includes(qs))hit=true;
+      block.push({i,k:k++,s,tot,ok,hit});});
+    flush();});
+  if(!wins.length)return null;
+  wins.forEach(w=>w.sc=w.r+0.03*w.L+Math.random()*0.15); wins.sort((a,b)=>b.sc-a.sc);
+  const pick=[];let n=0; for(const w of wins){if(n>=(KID?6:10))break;if(pick.some(p=>p.si===w.si))continue;pick.push(w);n+=w.L;}
+  const s=[],seg=[],g={};let tot=0,ok=0,wc=0;
+  pick.forEach((w,j)=>{if(j){s.push(0);seg.push(null);} const G=STORIES[w.si].g;
+    w.w.forEach(x=>{s.push(x.s);seg.push([w.si,x.k]);tot+=x.tot;ok+=x.ok;x.s[0].split(TOK).forEach((p,jj)=>{if(jj%2!==1)return;wc++;const lw=p.toLowerCase();if(G[lw]&&!g[lw])g[lw]=G[lw];});});});
+  return {t:q?`Про «${q}»`:(KID?"Казка з твоїх слів":"З твоїх слів"),tu:`${n} ${plural(n,"речення","речення","речень")} з ${pick.length} ${plural(pick.length,"історії","історій","історій")}. Підібрано речення, де найбільше слів ти вже вчиш`,s,g,seg,wc,vs:true};
+}
+function openVS(q){const v=buildVS(q);if(!v){toast(q?`Не знайшла речень про «${q}». Спробуй інше слово`:"Поки що нема з чого скласти",2600);return false;}VS=v;cur=-1;renderStory();return true;}
+{const b=document.createElement("button");b.className="num vs";b.type="button";b.id="vsBtn";b.textContent="✨ З моїх слів";b.title="Історія з твоїх слів";b.onclick=()=>openVS($("vsQ").value);$("nums").appendChild(b);}
+$("vsGo").onclick=()=>openVS($("vsQ").value);
+$("vsQ").addEventListener("keydown",e=>{if(e.key==="Enter")openVS($("vsQ").value);});
 STORIES.forEach((St,i)=>{const b=document.createElement("button");b.className="num";b.type="button";b.textContent=i+1;b.title=St.t;b.onclick=()=>{cur=i;renderStory();};$("nums").appendChild(b);});
 function renderStory(){
   stopStory(); closeSheet(); resumeK=-1;
-  const St=STORIES[cur];
-  $("eyebrow").textContent=`Історія ${cur+1} з ${STORIES.length}`; $("title").textContent=St.t; $("titleUk").textContent=St.tu;
+  if(cur<0&&!VS)cur=0;
+  const St=curSt(), isVS=cur<0;
+  $("eyebrow").textContent=isVS?"✨ Складено з твоїх слів":`Історія ${cur+1} з ${STORIES.length}`; $("title").textContent=St.t; $("titleUk").textContent=St.tu; $("vsRow").hidden=!isVS;
   const lem=new Set(),kn=new Set(); for(const k in St.g){const g=St.g[k]; if(g[3]<0)continue; lem.add(g[1]); if(g[3]>=0&&status(g[3])>0)kn.add(g[1]);}
   const kp=Math.round(100*kn.size/Math.max(1,lem.size));
-  $("stats").innerHTML=`<span><b>${St.wc}</b> слів</span><span>ти знаєш <b>${kp}%</b> слів історії</span>`+(kp<60&&!KID?`<span>легше буде після ~150 вивчених слів</span>`:"");
+  $("stats").innerHTML=`<span><b>${St.wc}</b> слів</span><span>ти знаєш <b>${kp}%</b> слів історії</span>`+(kp<60&&!KID&&!isVS?`<span>легше буде після ~150 вивчених слів</span>`:"");
   const art=$("story"); art.innerHTML=""; let p=document.createElement("p"); p.className="para"; art.appendChild(p);
-  seqMap=[]; let k=0;
+  seqMap=[]; seqInv=[]; let k=0;
   St.s.forEach((s,i)=>{
     if(s===0){seqMap[i]=-1; if(p.childNodes.length){p=document.createElement("p");p.className="para";art.appendChild(p);} return;}
-    seqMap[i]=k++;
+    seqInv[k]=i; seqMap[i]=k++;
     const span=document.createElement("span"); span.className="sent"; span.dataset.i=i;
     s[0].split(TOK).forEach((part,j)=>{ if(!part)return;
       if(j%2===1){const g=St.g[part.toLowerCase()];const w=document.createElement("span");
@@ -868,38 +914,41 @@ function renderStory(){
     span.appendChild(document.createTextNode(" ")); p.appendChild(span);
     const tr=document.createElement("span"); tr.className="tr"; tr.textContent=s[1]; p.appendChild(tr);
   });
-  [...$("nums").children].forEach((b,i)=>{b.setAttribute("aria-pressed",i===cur);b.classList.toggle("done",doneSt.has(i));});
-  $("next").hidden=cur===STORIES.length-1; ls.set("e2k_story",cur);
+  [...$("nums").querySelectorAll(".num:not(.vs)")].forEach((b,i)=>{b.setAttribute("aria-pressed",i===cur);b.classList.toggle("done",doneSt.has(i));});
+  $("vsBtn").setAttribute("aria-pressed",isVS);
+  $("next").hidden=!isVS&&cur===STORIES.length-1; $("next").textContent=isVS?"✨ Скласти іншу":"Наступна історія →"; if(!isVS)ls.set("e2k_story",cur);
   $("learnStory").disabled=false;$("learnStory").textContent="Вивчити 10 слів з цієї історії";
-  player(sSrc()); player(wSrc());
+  if(isVS){new Set(VS.seg.filter(Boolean).map(x=>x[0])).forEach(si=>{player(sSrc(si));player(wSrc(si));});} else {player(sSrc()); player(wSrc());}
 }
 function stopStory(){ clearTimeout(repTimer); if(storyPlaying){if(lastHl>0)resumeK=lastHl;stopAudio();} storyPlaying=false; onTick=null; $("play").textContent="▶ Слухати";
   document.querySelectorAll(".sent.playing").forEach(e=>e.classList.remove("playing")); }
-function sayWord(key){const o=STORIES[cur].a[voiceKey].w[key]; if(o)playSeg(wSrc(),o[0],o[1],Math.max(rate,0.85)).catch(()=>{});}
-function saySent(i){const o=STORIES[cur].a[voiceKey].s[seqMap[i]]; if(o)playSeg(sSrc(),o[0],o[1],rate).catch(()=>{});}
+function sayWord(key,i){const si=cur<0?(VS.seg[i]||[0])[0]:cur;const o=STORIES[si].a[voiceKey].w[key]; if(o)playSeg(wSrc(si),o[0],o[1],Math.max(rate,0.85)).catch(()=>{});}
+function saySent(i){const x=segOf(i); if(x.o)playSeg(x.src,x.o[0],x.o[1],rate).catch(()=>{});}
+function hlK(k){if(k===lastHl)return; lastHl=k;
+  document.querySelectorAll(".sent.playing").forEach(e=>e.classList.remove("playing"));
+  const el=document.querySelector(`.sent[data-i="${seqInv[k]}"]`);
+  if(el){el.classList.add("playing");el.scrollIntoView({block:"center",behavior:"smooth"});}}
 function highlightAt(t){
   const offs=STORIES[cur].a[voiceKey].s; let k=-1;
   for(let j=0;j<offs.length;j++){if(t>=offs[j][0]-0.1)k=j;else break;}
-  if(k===lastHl)return; lastHl=k;
-  document.querySelectorAll(".sent.playing").forEach(e=>e.classList.remove("playing"));
-  const el=document.querySelector(`.sent[data-i="${seqMap.indexOf(k)}"]`);
-  if(el){el.classList.add("playing");el.scrollIntoView({block:"center",behavior:"smooth"});}
+  hlK(k);
 }
 let resumeK=-1;
 let repeatMode=ls.get("e2k_rep")==="1", repTimer=0;
-function storyDone(){stopStory();resumeK=-1;doneSt.add(cur);logAdd("st",1);S.sd=[...doneSt];persist();ls.set("hv_done",[...doneSt].join(","));
-  [...$("nums").children].forEach((b,i)=>b.classList.toggle("done",doneSt.has(i)));playLabel();}
+function storyDone(){stopStory();resumeK=-1;if(cur<0){logAdd("st",1);persist();playLabel();return;}doneSt.add(cur);logAdd("st",1);S.sd=[...doneSt];persist();ls.set("hv_done",[...doneSt].join(","));
+  [...$("nums").querySelectorAll(".num:not(.vs)")].forEach((b,i)=>b.classList.toggle("done",doneSt.has(i)));playLabel();}
 function playLabel(){$("play").textContent=storyPlaying?"■ Стоп":resumeK>0?"▶ Далі":"▶ Слухати";}
 // режим «Повторюй»: речення → пауза на 1,3× його довжини, щоб повторити вголос → наступне
-function playSentenceChain(k){const offs=STORIES[cur].a[voiceKey].s;if(!storyPlaying)return;if(k>=offs.length){storyDone();return;}
-  lastHl=-1;highlightAt(offs[k][0]);
-  playSeg(sSrc(),offs[k][0],offs[k][1],rate,()=>{if(!storyPlaying)return;resumeK=k+1;
-    repTimer=setTimeout(()=>playSentenceChain(k+1),Math.max(900,1300*(offs[k][1]-offs[k][0])/rate));}).catch(()=>{storyPlaying=false;playLabel();});}
+function playSentenceChain(k){if(!storyPlaying)return;if(k>=seqInv.length){storyDone();return;}
+  const x=segOf(seqInv[k]); lastHl=-1;hlK(k);
+  playSeg(x.src,x.o[0],x.o[1],rate,()=>{if(!storyPlaying)return;resumeK=k+1;
+    repTimer=setTimeout(()=>playSentenceChain(k+1),repeatMode?Math.max(900,1300*(x.o[1]-x.o[0])/rate):250);}).catch(()=>{storyPlaying=false;playLabel();});}
 $("play").onclick=()=>{
   if(storyPlaying){stopStory();playLabel();return;}
-  closeSheet(); const offs=STORIES[cur].a[voiceKey].s; const k0=resumeK>0&&resumeK<offs.length?resumeK:0; lastHl=-1;
-  storyPlaying=true; onTick=repeatMode?null:highlightAt; playLabel();
-  if(repeatMode){playSentenceChain(k0);return;}
+  closeSheet(); const k0=resumeK>0&&resumeK<seqInv.length?resumeK:0; lastHl=-1;
+  storyPlaying=true; onTick=repeatMode||cur<0?null:highlightAt; playLabel();
+  if(repeatMode||cur<0){playSentenceChain(k0);return;}
+  const offs=STORIES[cur].a[voiceKey].s;
   playSeg(sSrc(),k0?offs[k0][0]:0.3,offs[offs.length-1][1]+0.2,rate,storyDone).catch(()=>{storyPlaying=false;playLabel();});
 };
 $("repBtn").onclick=()=>{repeatMode=!repeatMode;ls.set("e2k_rep",repeatMode?"1":"0");$("repBtn").setAttribute("aria-pressed",repeatMode);
@@ -909,10 +958,10 @@ $("speed").onclick=()=>{rate=rate===0.8?1:rate===1?0.6:0.8;$("speed").textConten
   if(storyPlaying&&curA){const t=curPos();curA.s=t;curA.t0=actx.currentTime;curA.r=rate;curA.node.playbackRate.value=rate;}};
 
 $("trBtn").onclick=()=>{const on=$("story").classList.toggle("showtr");$("trBtn").setAttribute("aria-pressed",on);};
-$("next").onclick=()=>{if(cur<STORIES.length-1){cur++;renderStory();window.scrollTo({top:0});}};
+$("next").onclick=()=>{if(cur<0){openVS($("vsQ").value);window.scrollTo({top:0});return;}if(cur<STORIES.length-1){cur++;renderStory();window.scrollTo({top:0});}};
 $("story").addEventListener("click",e=>{
   const w=e.target.closest(".w"); if(!w)return;
-  const St=STORIES[cur], key=w.textContent.toLowerCase(), g=St.g[key];
+  const St=curSt(), key=w.textContent.toLowerCase(), g=St.g[key];
   if(selEl)selEl.classList.remove("sel"); selEl=w; w.classList.add("sel");
   const si=+w.dataset.i; const lib=g?g[3]:-1;
   sheetCtx={kind:"story",key,sent:si,lib};
@@ -923,10 +972,10 @@ $("story").addEventListener("click",e=>{
   const lt=st===2?`<span class="tag n">вивчено</span>`:st===1?`<span class="tag l">вчу</span>`:"";
   $("shMeta").innerHTML=tag+lt+lemma; $("shSent").textContent=St.s[si][1]; $("shSentRow").hidden=false;
   $("shLearn").hidden=!(lib>=0&&st===0); $("sheet").hidden=false;
-  if(storyPlaying)stopStory(); sayWord(key);
+  if(storyPlaying)stopStory(); sayWord(key,si); recMount($("shRec"),()=>segOf(si));
 });
 
-$("learnStory").onclick=()=>{const St=STORIES[cur];const all=new Set();for(const k in St.g){const l=St.g[k][3];if(l>=0&&status(l)===0)all.add(l);}
+$("learnStory").onclick=()=>{const St=curSt();const all=new Set();for(const k in St.g){const l=St.g[k][3];if(l>=0&&status(l)===0)all.add(l);}
   const ids=[...all].sort((a,b)=>a-b).slice(0,10);   // 10 найчастіших незнайомих
   if(!ids.length){$("learnStory").textContent="Усі слова звідси вже у навчанні";$("learnStory").disabled=true;return;}
   S.pri=S.pri||[]; S.pri=ids.concat(S.pri.filter(x=>!ids.includes(x))); persist(); closeSheet(); stopStory();
@@ -962,6 +1011,8 @@ function openDlg(i){curD=i;dlgRole=false;clearTimeout(dlgTimer);stopAudio();cons
     <div class="chat showtr" id="chat">${d.l.map((x,k)=>`<div class="bub${x[0]==="A"?" me":""}" data-k="${k}"><span class="who">${esc(x[1])}</span><span class="es">${wrapWords(x[2])}</span><span class="uk">${esc(x[3])}</span></div>`).join("")}</div>
     <div class="card" style="gap:0"><div class="row" style="justify-content:space-between"><h2>Що треба вміти сказати</h2><button class="btn" id="dCheat" type="button">Шпаргалка</button></div>
       ${d.kp.map((p,k)=>`<div class="kp"><span class="spkwrap"><button class="speak sm" type="button" data-kp="${k}" aria-label="Озвучити">${ICON_SPK}</button><button class="slowbtn" type="button" data-kp="${k}" data-slow="1" aria-label="Повільніше">🐢</button></span><span style="min-width:0"><div class="es">${esc(p[0])}</div><div class="uk">${esc(p[1])}</div></span><button class="cando" type="button" data-can="${k}" aria-pressed="${c.includes(k)}">${c.includes(k)?"✓ Можу":"Можу?"}</button></div>`).join("")}
+      <div class="row" style="justify-content:space-between;padding-top:10px;border-top:1px solid var(--line)"><b>🎙 Порівняй свою вимову</b><select id="dRecSel" class="btn" style="max-width:55%">${d.kp.map((p,k)=>`<option value="${k}">${esc(p[0])}</option>`).join("")}</select></div>
+      <div id="dRec"></div>
     </div>`;
   const L=d.l.length;
   $("dBack").onclick=()=>{stopAudio();clearTimeout(dlgTimer);renderDlgList();window.scrollTo({top:0});};
@@ -974,6 +1025,7 @@ function openDlg(i){curD=i;dlgRole=false;clearTimeout(dlgTimer);stopAudio();cons
     arr.has(k)?arr.delete(k):arr.add(k);S.can[i]=[...arr];logAdd("cn",arr.has(k)?1:0);persist();
     b.setAttribute("aria-pressed",arr.has(k));b.textContent=arr.has(k)?"✓ Можу":"Можу?";hap(arr.has(k)?"ok":"tap");if(arr.has(k))beep(true);});
   $("dCheat").onclick=()=>openCheat(i);
+  const mountD=()=>recMount($("dRec"),()=>({src:dSrc(i),o:DLG[i].a[L+(+$("dRecSel").value)]}));mountD();$("dRecSel").onchange=mountD;
   const chain=(k)=>{document.querySelectorAll("#chat .bub").forEach(x=>x.classList.remove("playing"));if(k>=L){$("dPlay").textContent="▶ Слухати";return;}
     const el=document.querySelector(`#chat .bub[data-k="${k}"]`);el.classList.add("playing");el.scrollIntoView({block:"center",behavior:"smooth"});
     if(dlgRole&&d.l[k][0]==="A"){ // твоя репліка: пауза, щоб сказати самому, потім звучить правильний варіант
@@ -1022,6 +1074,84 @@ function renderGame(){
     first=null;});
   $("gAgain").onclick=renderGame;
 }
+// ===== ЗАПИС ГОЛОСУ: «я» проти диктора =====
+// Порівнюємо чесно: на слух (по черзі) і за формою хвилі та темпом. Оцінки «правильно/неправильно» немає — без розпізнавання мови вона була б вигадкою.
+const REC={mr:null,stream:null,me:null,box:null,ref:null,timer:0};
+function recReset(){clearTimeout(REC.timer);try{REC.mr&&REC.mr.state!=="inactive"&&REC.mr.stop();}catch(e){}if(REC.stream)REC.stream.getTracks().forEach(t=>t.stop());REC.mr=null;REC.stream=null;REC.me=null;}
+function recMount(box,refFn){if(!box)return;recReset();REC.box=box;REC.ref=refFn;
+  box.innerHTML=`<div class="recbox"><button class="btn recb" type="button">🎙 Запиши себе</button><button class="btn" type="button" data-rme hidden>▶ Я</button><button class="btn" type="button" data-rref hidden>▶ Диктор</button><button class="btn" type="button" data-rboth hidden>Я → Диктор</button><canvas hidden></canvas><div class="rmsg" hidden></div></div>`;
+  const q=s=>box.querySelector(s);
+  q(".recb").onclick=()=>REC.mr?recStop():recStart();
+  q("[data-rme]").onclick=()=>playMine();
+  q("[data-rref]").onclick=()=>{const x=REC.ref();playSeg(x.src,x.o[0],x.o[1],S.slow?0.75:0.9).catch(()=>{});};
+  q("[data-rboth]").onclick=()=>playMine(()=>{const x=REC.ref();setTimeout(()=>playSeg(x.src,x.o[0],x.o[1],S.slow?0.75:0.9).catch(()=>{}),300);});}
+function recMsg(t){const m=REC.box&&REC.box.querySelector(".rmsg");if(m){m.hidden=!t;m.textContent=t||"";}}
+async function recStart(){const box=REC.box;if(!box)return;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){recMsg("Мікрофон тут недоступний. Відкрий додаток у Telegram на телефоні.");return;}
+  stopAudio();
+  try{REC.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});}
+  catch(e){recMsg("Немає доступу до мікрофона. Дозволь мікрофон для Telegram у налаштуваннях телефона.");return;}
+  const chunks=[];const mr=new MediaRecorder(REC.stream);REC.mr=mr;
+  mr.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+  mr.onstop=async()=>{if(REC.stream)REC.stream.getTracks().forEach(t=>t.stop());REC.stream=null;REC.mr=null;
+    const b=box.querySelector(".recb");if(b){b.classList.remove("on");b.textContent="🎙 Ще раз";}
+    if(!chunks.length){recMsg("Запис порожній. Спробуй ще раз.");return;}
+    try{const ab=await new Blob(chunks,{type:mr.mimeType||"audio/webm"}).arrayBuffer();
+      const buf=await new Promise((ok,no)=>AC().decodeAudioData(ab,ok,no));REC.me=trimBuf(buf);
+      if(!REC.me){recMsg("Не чути голосу. Говори ближче до телефона.");return;}
+      box.querySelectorAll("[data-rme],[data-rref],[data-rboth]").forEach(x=>x.hidden=false);
+      await drawCmp(); playMine();}
+    catch(e){recMsg("Не вдалося прочитати запис. Спробуй ще раз.");}};
+  const x=REC.ref(); const lim=Math.min(12000,Math.max(3500,((x.o[1]-x.o[0])*2.2+1.8)*1000));
+  mr.start(); hap("tap"); const b=box.querySelector(".recb"); b.classList.add("on"); b.textContent="■ Стоп"; recMsg("Говори… запис зупиниться сам");
+  REC.timer=setTimeout(recStop,lim);}
+function recStop(){clearTimeout(REC.timer);try{REC.mr&&REC.mr.state!=="inactive"&&REC.mr.stop();}catch(e){}}
+// прибираємо тишу на початку й у кінці, щоб порівнювати саму фразу
+function trimBuf(b){const d=b.getChannelData(0),sr=b.sampleRate,w=Math.floor(sr*0.02);let mx=0;const env=[];
+  for(let i=0;i<d.length;i+=w){let s=0;for(let j=i;j<Math.min(d.length,i+w);j++)s+=d[j]*d[j];const r=Math.sqrt(s/w);env.push(r);if(r>mx)mx=r;}
+  if(mx<0.01)return null;const th=mx*0.12;let a=env.findIndex(v=>v>th),z=env.length-1-[...env].reverse().findIndex(v=>v>th);
+  a=Math.max(0,a-3);z=Math.min(env.length-1,z+3);const s0=a*w,s1=Math.min(d.length,(z+1)*w);
+  const out=AC().createBuffer(1,s1-s0,sr);out.getChannelData(0).set(d.subarray(s0,s1));return out;}
+function envOf(d,n){const out=new Array(n).fill(0),step=d.length/n;let mx=1e-6;
+  for(let k=0;k<n;k++){let s=0;const a=Math.floor(k*step),z=Math.floor((k+1)*step);for(let j=a;j<z;j++)s+=Math.abs(d[j]);out[k]=s/Math.max(1,z-a);if(out[k]>mx)mx=out[k];}
+  return out.map(v=>v/mx);}
+async function drawCmp(){const box=REC.box,cv=box.querySelector("canvas");const x=REC.ref();
+  let ref=null;try{const rb=await getBuf(x.src);const sr=rb.sampleRate;ref=rb.getChannelData(0).subarray(Math.floor(x.o[0]*sr),Math.floor(x.o[1]*sr));}catch(e){}
+  const me=REC.me.getChannelData(0);cv.hidden=false;const W=cv.clientWidth||300,H=64,dpr=window.devicePixelRatio||1;cv.width=W*dpr;cv.height=H*dpr;
+  const c=cv.getContext("2d");c.scale(dpr,dpr);c.clearRect(0,0,W,H);const n=Math.floor(W/3);
+  const cs=getComputedStyle(document.body),acc=cs.getPropertyValue("--accent").trim()||"#d4541b",fg=cs.getPropertyValue("--muted").trim()||"#888";
+  const bars=(e,y0,dir,col)=>{c.fillStyle=col;e.forEach((v,k)=>{const h=Math.max(1,v*(H/2-4));c.fillRect(k*3,dir<0?y0-h:y0,2,h);});};
+  if(ref)bars(envOf(ref,n),H/2-1,-1,acc); bars(envOf(me,n),H/2+1,1,fg);
+  let txt="Зверху диктор, знизу ти. Схожі «горбики» = схожий ритм.";
+  if(ref){const rs=(x.o[1]-x.o[0]),ms=REC.me.duration,k=ms/rs;
+    txt+=k>1.6?" Ти говориш помітно повільніше — це нормально на старті.":k<0.75?" Ти говориш швидше за диктора — спробуй чіткіше.":" Темп близький до диктора 👍";}
+  recMsg(txt);}
+let mineNode=null;
+function playMine(cb){if(!REC.me)return;stopAudio();try{mineNode&&mineNode.stop();}catch(e){}
+  const c=AC(),n=c.createBufferSource();n.buffer=REC.me;n.connect(c.destination);n.onended=()=>{if(mineNode===n){mineNode=null;if(cb)cb();}};mineNode=n;n.start();}
+
+// ===== ТИЖНЕВИЙ ЗВІТ =====
+const BOT="espanol2000_dmytro_bot";
+function weekStats(off){const t=today()-off;let n=0,r=0,c=0,sp=0,days=0,cn=0;
+  for(let d=t-6;d<=t;d++){const L=S.log[d];if(!L)continue;n+=L.n||0;r+=L.r||0;c+=L.c||0;sp+=L.sp||0;cn+=L.cn||0;if((L.n||0)+(L.r||0)+(L.sp||0)>0)days++;}
+  return {n,r,c,sp,days,cn,acc:r?Math.round(100*c/r):0};}
+function learnedCount(){let k=0;for(const id in S.p)if(S.p[id][0]>=4)k++;return k;}
+function inWork(){let k=0;for(const id in S.p)if(S.p[id][0]>0)k++;return k;}
+function renderWeek(){if(!$("wkGrid"))return;const w=weekStats(0),p=weekStats(7),st=streak();
+  const dt=d=>{const x=new Date(d*86400000);return x.getUTCDate()+"."+String(x.getUTCMonth()+1).padStart(2,"0");};
+  $("wkRange").textContent=dt(today()-6)+"–"+dt(today());
+  const diff=(a,b)=>b?(a>=b?`<em style="color:var(--ok,#2e7d32)">▲ ${a-b} до минулого</em>`:`<em class="muted">${a-b} до минулого</em>`):"";
+  const cells=[[`+${w.n}`,"нових слів",diff(w.n,p.n)],[`${w.days}/7`,"днів із заняттям",`<em class="muted">серія ${st} ${plural(st,"день","дні","днів")}</em>`],
+    [KID?`${w.r}`:`${w.acc}%`,KID?"повторів":"точність повторів",KID?"":`<em class="muted">${w.r} повторів</em>`],[`${inWork()}`,"слів у навчанні",`<em class="muted">${learnedCount()} закріплено</em>`]];
+  if(!KID)cells.push([`${canTotal()}`,"фраз «можу сказати»",""],[`${w.sp}`,"фраз уголос",""]);
+  $("wkGrid").innerHTML=cells.map(x=>`<div><b>${x[0]}</b><span>${x[1]}</span>${x[2]}</div>`).join("");}
+function weekPayload(){const w=weekStats(0);return ["w",w.n,w.days,w.r,w.acc,streak(),inWork(),learnedCount(),KID?0:canTotal(),KID?1:0].join("_");}
+$("wkSend").onclick=()=>{const url=`https://t.me/${BOT}?start=${weekPayload()}`;
+  try{if(TGW&&TGW.openTelegramLink){TGW.openTelegramLink(url);toast("Натисни «Почати» / Start у чаті — бот надішле звіт",3000);return;}}catch(e){}
+  window.open(url,"_blank");};
+const _renderHist=renderHist; renderHist=function(){_renderHist();renderWeek();};
+if(/[?&]week=1/.test(location.search)||(TGW&&TGW.initDataUnsafe&&TGW.initDataUnsafe.start_param==="week"))setTimeout(()=>{show("today");const c=$("weekCard");if(c)c.scrollIntoView({block:"center"});},600);
+
 // режим «Читаємо разом» в історіях
 function togetherBtn(){if(!$("togBtn")){const b=document.createElement("button");b.className="btn";b.id="togBtn";b.type="button";b.textContent="Читаємо разом";
   $("trBtn").after(b);b.onclick=()=>{const on=$("story").classList.toggle("together");b.setAttribute("aria-pressed",on);toast(on?"Великий текст без перекладу: дорослий читає, дитина тапає слова":"Звичайний режим",2400);};}}
