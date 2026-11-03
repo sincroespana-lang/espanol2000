@@ -27,7 +27,7 @@
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 .wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 170px;display:flex;flex-direction:column;gap:16px}
-.label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,6.5vw,36px);line-height:1.05;margin:4px 0 0;text-wrap:balance}
 h2{font-family:var(--display);font-weight:600;font-size:19px;margin:0}
 .muted{color:var(--muted)}
@@ -66,7 +66,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hist div{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
 .hist i{display:block;width:100%;border-radius:4px 4px 2px 2px;background:var(--new);min-height:2px}
 .hist i.z{background:var(--line)} .hist i.t{background:var(--accent)}
-.hist span{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hist span{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 .histlist{display:flex;flex-direction:column;font-size:14px}
 .histlist div{display:grid;grid-template-columns:70px 1fr auto;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
 .histlist b{font-weight:600}
@@ -83,7 +83,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .pace button b{font:800 24px var(--display)} .pace button span{font-size:12px;color:var(--muted)}
 .pace4{grid-template-columns:repeat(4,1fr)} .pace2{grid-template-columns:repeat(2,1fr)}
 .tgl{display:flex;gap:10px;align-items:center;font-size:15px;cursor:pointer;padding:6px 0}
-.tgl input{width:22px;height:22px;accent-color:var(--accent)}
+.tgl input{width:24px;height:24px;accent-color:var(--accent)}
 .pace button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 @media (hover:none){kbd{display:none}}
 .missed{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left}
@@ -127,7 +127,7 @@ html.big body{font-size:18px} html.big .label,html.big .qhint,html.big .tab,html
 html.big .para{font-size:23px} html.big .opt{font-size:19px;padding:16px} html.big .qsub{font-size:20px} html.big .qex{font-size:21px} html.big .qexuk{font-size:17px}
 html.big .btn{font-size:17px} html.big .li b{font-size:20px} html.big .li span{font-size:16px} html.big .step b{font-size:18px} html.big .step small{font-size:15px}
 html.big .sh-uk{font-size:21px} html.big .sh-sent{font-size:16px}
-.profbtn{position:absolute;top:14px;right:14px;z-index:2;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;border-radius:99px;padding:5px 12px;font:600 13px var(--body);cursor:pointer}
+.profbtn{position:absolute;top:14px;right:14px;z-index:2;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;border-radius:99px;padding:8px 14px;min-height:36px;font:600 14px var(--body);cursor:pointer}
 .proflist{display:flex;flex-direction:column;gap:6px}
 .proflist button{text-align:left}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -137,7 +137,7 @@ html.big .sh-uk{font-size:21px} html.big .sh-sent{font-size:16px}
 .chat{display:flex;flex-direction:column;gap:10px}
 .bub{max-width:86%;border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;border:1px solid var(--line);background:var(--paper)}
 .bub.me{align-self:flex-end;background:var(--ink-soft);border-color:transparent}
-.bub .who{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.bub .who{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
 .bub .es{font-family:var(--read);font-size:18px} .bub .uk{font-size:13px;color:var(--muted)}
 .bub.hidden-es .es{filter:blur(6px)} .bub.playing{outline:2px solid var(--accent)}
 .bub.turn{outline:2px dashed var(--accent)}
@@ -185,9 +185,10 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
 .grade .no{border-color:var(--bad);color:var(--bad)}
 .grade .ok{border-color:var(--new);color:var(--new)}
 .done-card{text-align:center;align-items:center}
+#quizView:has(>.done-card){display:flex;flex-direction:column;justify-content:center;min-height:calc(100dvh - 60px)}
 
 /* Слова */
-.filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
 .chip{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--fg);border-radius:999px;padding:7px 12px;font:500 13px var(--body);cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .search{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--paper);color:var(--fg);border-radius:12px;padding:11px 14px;font:16px var(--body)}
@@ -201,15 +202,14 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
 .more{align-self:center}
 
 /* Історії */
-.nums{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.nums::-webkit-scrollbar{display:none}.num{flex-shrink:0}
-.num{flex:1 1 0;min-width:28px;max-width:44px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);font:600 15px var(--display);cursor:pointer;font-variant-numeric:tabular-nums}
+.nums{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.nums::-webkit-scrollbar{display:none}.num{flex-shrink:0;min-width:36px}
+.num{flex:1 1 0;min-width:36px;max-width:44px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);font:600 15px var(--display);cursor:pointer;font-variant-numeric:tabular-nums}
 .num[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .num.done{border-color:var(--new);color:var(--new)}
 .num.done[aria-pressed="true"]{color:var(--bg)}
 .sticky{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line)}
 .ctl{display:flex;gap:6px;flex-wrap:wrap}
-.ctl{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
-.ctl .btn{padding:8px 11px;font-size:14px;flex:none}
+.ctl .btn{padding:8px 10px;font-size:14px;flex:none}
 .stats{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .stats b{color:var(--fg)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
@@ -279,6 +279,16 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
           <button class="step" type="button" id="stSpeak"><i class="chk"></i><span><b>Говорити</b><small id="stSpeakSub">15 хв · фрази з української вголос</small></span><em>›</em></button>
         </div>
       </div>
+      <div class="card" id="weekCard">
+        <div class="row" style="justify-content:space-between"><h2>Мій тиждень</h2><span class="muted" id="wkRange" style="font-size:13px"></span></div>
+        <div class="wk" id="wkGrid"></div>
+        <button class="btn" id="wkSend" type="button">📤 Надіслати звіт у чат бота</button>
+      </div>
+      <div class="card">
+        <h2>Історія занять</h2>
+        <div class="hist" id="hist" aria-label="Карток за останні 14 днів"></div>
+        <div class="histlist" id="histList"></div>
+      </div>
       <div class="card">
         <h2>Налаштування</h2>
         <label class="tgl"><input type="checkbox" id="setBig"> Великий текст</label>
@@ -290,16 +300,6 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
           <button class="chip" type="button" data-daily="33">33</button>
           <button class="chip" type="button" data-daily="45">45</button>
         </div>
-      </div>
-      <div class="card" id="weekCard">
-        <div class="row" style="justify-content:space-between"><h2>Мій тиждень</h2><span class="muted" id="wkRange" style="font-size:13px"></span></div>
-        <div class="wk" id="wkGrid"></div>
-        <button class="btn" id="wkSend" type="button">📤 Надіслати звіт у чат бота</button>
-      </div>
-      <div class="card">
-        <h2>Історія занять</h2>
-        <div class="hist" id="hist" aria-label="Карток за останні 14 днів"></div>
-        <div class="histlist" id="histList"></div>
       </div>
       <div class="sync" id="syncTxt"></div>
     </div>
