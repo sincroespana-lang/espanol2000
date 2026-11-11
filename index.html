@@ -263,6 +263,29 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
 .close{margin-left:auto;flex:none;border:none;background:transparent;color:var(--muted);font-size:26px;cursor:pointer;width:40px;height:40px}
 .sh-uk{font-size:18px;color:var(--ink);font-weight:500}
 .sh-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{border:0;background:none;padding:10px 6px;border-radius:9px;font:600 15px var(--body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--paper);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.imp summary{cursor:pointer;font-weight:600;list-style:none}
+.imp summary::-webkit-details-marker{display:none}
+.imp textarea{width:100%;box-sizing:border-box;min-height:120px;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:12px;padding:10px;font:13px/1.4 ui-monospace,Menlo,monospace;resize:vertical}
+.mwres{border-radius:12px;padding:10px 12px;font-size:15px;line-height:1.45}
+.mwres.ok{background:var(--new-soft);color:var(--fg)} .mwres.err{background:var(--accent-soft);color:var(--fg)}
+.mwc{background:var(--paper);border:1px solid var(--line);border-radius:14px}
+.mwc>summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 10px;gap:10px;align-items:center;padding:12px 14px;cursor:pointer;list-style:none}
+.mwc>summary::-webkit-details-marker{display:none}
+.mwc>summary b{font-family:var(--display);font-weight:600;font-size:17px;overflow-wrap:anywhere}
+.mwc>summary span{color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+.mwb{display:flex;flex-direction:column;gap:10px;padding:0 14px 14px}
+.mwtr{color:var(--muted);font-size:15px}
+.hooks{display:flex;flex-direction:column;gap:6px;width:100%}
+.hook{display:grid;grid-template-columns:22px 1fr;gap:6px;background:var(--accent-soft);border-radius:10px;padding:8px 10px;font-size:15px;line-height:1.4;text-align:left}
+.mwex{border-left:3px solid var(--line);padding-left:10px;display:flex;flex-direction:column;gap:2px}
+.mwex .es{font-family:var(--read);font-size:17px}.mwex small{color:var(--muted);font-size:13px}.mwex span{font-size:14px;color:var(--muted)}
+.mwh{font-size:13px;color:var(--muted);line-height:1.6}
+.mwh i{font-style:normal;white-space:nowrap;margin-right:6px}
+.mwh .y{color:var(--new)} .mwh .n{color:var(--accent)}
+.tag.life{background:var(--new-soft);color:var(--new)}
 .tag{border-radius:6px;padding:1px 7px;font-size:12px;font-weight:600}
 .tag.k{background:var(--ink-soft);color:var(--ink)} .tag.n{background:var(--new-soft);color:var(--new)} .tag.l{background:var(--accent-soft);color:var(--accent)}
 .sh-sent{font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px;display:flex;gap:8px;align-items:flex-start}
@@ -342,7 +365,9 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
 
   <!-- СЛОВА -->
   <section id="v-words" hidden style="display:flex;flex-direction:column;gap:12px">
-    <header><div class="label">Бібліотека</div><h1>Мої слова</h1></header>
+    <header><div class="label">Бібліотека</div><h1>Слова</h1></header>
+    <div class="seg" role="group" aria-label="Які слова показати"><button type="button" data-ws="all" aria-pressed="true">Усі слова</button><button type="button" data-ws="mine" aria-pressed="false">✍️ Мої слова<span id="mwN"></span></button></div>
+    <div id="wAll" style="display:flex;flex-direction:column;gap:12px">
     <div class="kpis">
       <div class="kpi"><b id="wLearned">0</b><span>вивчено</span></div>
       <div class="kpi"><b id="wLearning">0</b><span>вчу</span></div>
@@ -358,6 +383,19 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
     </div>
     <div class="list" id="wordList"></div>
     <button class="btn more" id="moreBtn" type="button">Показати ще</button>
+    </div>
+    <div id="wMine" hidden style="display:flex;flex-direction:column;gap:12px">
+      <details class="card imp" id="mwImp"><summary>＋ Імпорт із чату-тренера</summary>
+        <div class="muted" style="font-size:14px">Скопіюй JSON-блок у чаті-тренері й встав сюди. Нові слова підуть у тести першими, знайомі — оновляться.</div>
+        <button class="btn" id="mwPaste" type="button">📋 Вставити з буфера</button>
+        <textarea id="mwTxt" spellcheck="false" autocomplete="off" placeholder='[{"es":"la mesa","tr":"ла мЕса","uk":"стіл", ...}]'></textarea>
+        <button class="btn main big" id="mwGo" type="button">Імпортувати</button>
+        <div id="mwRes" role="status" hidden></div>
+      </details>
+      <div class="filters" id="mwWhen"><button class="chip" type="button" data-mw="d">Сьогодні</button><button class="chip" type="button" data-mw="w">Тиждень</button><button class="chip" type="button" data-mw="all" aria-pressed="true">Усі</button></div>
+      <div class="filters" id="mwTop"></div>
+      <div id="mwList" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
   </section>
 
   <!-- ДІАЛОГИ -->
@@ -484,14 +522,16 @@ const INT=[0,1,3,7,21,45,90];   // повтор через 1 · 3 · 7 · 21 д�
 const BARRIOS=["Ruzafa","El Carmen","Benimaclet","Cabanyal","La Malvarrosa","Ciutat Vella","Campanar","Patraix","Algirós","Benicalap","El Saler","La Albufera","Ciudad de las Ciencias","Mestalla","Torrefiel","Natzaret","Pinedo","Burjassot","Alboraya","Toda Valencia"];
 const plural=(n,a,b,c)=>{n=Math.abs(n)%100;const m=n%10;return n>10&&n<20?c:m===1?a:m>=2&&m<=4?b:c;};
 let GOAL=2000, DAYS=60;
+const MW0=100000;          // id слів «з життя»: 100000+хеш слова → однаковий id на всіх пристроях
+let NB=0, BMAP=null;       // NB — розмір базового списку
 
 // ===== стан прогресу =====
 // P[id]=[box,due,right,wrong]; box 0 = ще не почате; box>=4 = вивчено
 let S={p:{},log:{},daily:33,start:today(),triage:false};
 let dbRef=null, saveT=0, dirty=false;
 function status(id){const e=S.p[id];if(!e||e[0]===0)return 0;return e[0]>=4?2:1;}
-function counts(){let l=0,g=0;for(const id in S.p){const b=S.p[id][0];if(b>=4)l++;else if(b>0)g++;}return {learned:l,learning:g,fresh:LIB.length-l-g};}
-function dueList(){const t=today();const r=[];for(const id in S.p){const e=S.p[id];if(e[0]>0&&e[1]<=t)r.push(+id);}return r;}
+function counts(){let l=0,g=0;for(const id in S.p){const b=S.p[id][0];if(b>=4)l++;else if(b>0)g++;}return {learned:l,learning:g,fresh:Math.max(0,NB-l-g)};}
+function dueList(){const t=today();const r=[];for(const id in S.p){const e=S.p[id];if(e[0]>0&&e[1]<=t&&mwOk(+id))r.push(+id);}return r;}
 function newToday(){return (S.log[today()]||{}).n||0;}
 function logAdd(k,v){const t=today();S.log[t]=S.log[t]||{n:0,r:0,c:0};S.log[t][k]=(S.log[t][k]||0)+v;}
 function streak(){let s=0,t=today();if(!S.log[t])t--;while(S.log[t]&&((S.log[t].r||0)+(S.log[t].n||0)+(S.log[t].sp||0)+(S.log[t].pt||0))>0){s++;t--;}return s;}
@@ -502,10 +542,16 @@ const TGW=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initDa
 const CS=TGW&&TGW.CloudStorage;
 const csSet=(k,v)=>new Promise((ok,no)=>CS.setItem(k,v,(e,r)=>e?no(e):ok(r)));
 const csGetMany=ks=>new Promise((ok,no)=>CS.getItems(ks,(e,r)=>e?no(e):ok(r||{})));
-async function cloudLoad(){const m=await csGetMany([PFX+"n","prof"]);
+async function cloudLoad(){const m=await csGetMany([PFX+"n","prof",PFX+"mn"]);
   try{const cp=JSON.parse(m.prof||"null");if(cp&&cp.list){cp.list.forEach(x=>{if(!PROF.list.find(y=>y.id===x.id))PROF.list.push(x);});lsRaw.set("e2k_prof",JSON.stringify(PROF));}}catch(e){}
   const n=+m[PFX+"n"]||0;if(!n)return null;
-  const ks=[...Array(n).keys()].map(i=>PFX+"s"+i);const parts=await csGetMany(ks);return JSON.parse(ks.map(k=>parts[k]||"").join(""));}
+  const ks=[...Array(n).keys()].map(i=>PFX+"s"+i);const parts=await csGetMany(ks);const d=JSON.parse(ks.map(k=>parts[k]||"").join(""));
+  const mn=+m[PFX+"mn"]||0;if(mn){try{const mk=[...Array(mn).keys()].map(i=>PFX+"m"+i);const mp=await csGetMany(mk);const str=mk.map(k=>mp[k]||"").join("");d.mw=JSON.parse(str);lastMW=str;}catch(e){}}
+  return d;}
+// «Мої слова» — окремими ключами, щоб не переписувати їх при кожному збереженні прогресу
+let lastMW="";
+async function cloudSaveMW(){const str=JSON.stringify(S.mw||{});if(str===lastMW||str==="{}")return;const ch=[];for(let i=0;i<str.length;i+=4000)ch.push(str.slice(i,i+4000));
+  for(let i=0;i<ch.length;i++)await csSet(PFX+"m"+i,ch[i]); await csSet(PFX+"mn",String(ch.length)); lastMW=str;}
 let lastSaved="";
 async function cloudSave(st){const str=JSON.stringify(st);if(str===lastSaved)return;const ch=[];for(let i=0;i<str.length;i+=4000)ch.push(str.slice(i,i+4000));
   for(let i=0;i<ch.length;i++)await csSet(PFX+"s"+i,ch[i]); await csSet(PFX+"n",String(ch.length)); lastSaved=str;}
@@ -517,13 +563,14 @@ function mergeRemote(d){if(!d)return;const rp=typeof d.p==="string"?JSON.parse(d
   if(d.pri)S.pri=[...new Set([...(S.pri||[]),...d.pri])];
   if(d.sd){S.sd=[...new Set([...(S.sd||[]),...d.sd])];try{S.sd.forEach(x=>doneSt.add(x));}catch(e){}}
   if(d.mute!==undefined)S.mute=d.mute;
+  if(d.mw)mwMerge(d.mw);
   if(d.isl){S.isl=S.isl||{};for(const k in d.isl)S.isl[k]=Math.max(S.isl[k]||0,d.isl[k]);}
   if(d.pt){S.pt=S.pt||{};for(const k in d.pt){S.pt[k]=[...new Set([...(S.pt[k]||[]),...d.pt[k]])];}}
   if(d.can){S.can=S.can||{};for(const k in d.can){S.can[k]=[...new Set([...(S.can[k]||[]),...d.can[k]])];}}
   ["kind","mins","goal","big","slow"].forEach(k=>{if(d[k]!==undefined&&d[k]!=="")S[k]=d[k];});}
 async function flush(){
   if(!dirty)return;
-  if(CS){dirty=false;try{await cloudSave({p:S.p,log:S.log,daily:S.daily,start:S.start,triage:S.triage,onb:S.onb,pri:S.pri||[],sd:S.sd||[],can:S.can||{},pt:S.pt||{},isl:S.isl||{},mute:!!S.mute,kind:S.kind||"adult",mins:S.mins||0,goal:S.goal||"",big:!!S.big,slow:!!S.slow});
+  if(CS){dirty=false;try{await cloudSave({p:S.p,log:S.log,daily:S.daily,start:S.start,triage:S.triage,onb:S.onb,pri:S.pri||[],sd:S.sd||[],can:S.can||{},pt:S.pt||{},isl:S.isl||{},mute:!!S.mute,kind:S.kind||"adult",mins:S.mins||0,goal:S.goal||"",big:!!S.big,slow:!!S.slow});await cloudSaveMW();
     $("syncTxt").textContent="Прогрес збережено · "+new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});}catch(e){dirty=true;$("syncTxt").textContent="Немає зв'язку — збережу, щойно з'явиться";}return;}
   if(!dbRef)return; dirty=false;
   try{await dbRef.set({p:JSON.stringify(S.p),log:JSON.stringify(S.log),daily:S.daily,start:S.start,triage:S.triage,at:new Date().toISOString()});
@@ -532,8 +579,58 @@ async function flush(){
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flush();});
 try{const loc=JSON.parse(ls.get(PFX+"e2k_state")||"null");if(loc&&(loc.p||loc.onb))S=Object.assign(S,loc);}catch(e){}
+// ===== МОЇ СЛОВА (з чату-тренера) =====
+// S.mw[id]={es,tr,uk,hs,hr,ex:[{es,tr,uk}],tp,src:"life"|"base",d:день,h:[[день,"a"|"u"|1|0]]}
+const mwFold=t=>String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+function mwKey(es){return String(es||"").toLowerCase().replace(/[¡!¿?.,;:"«»()]/g," ").trim().replace(/^(el|la|los|las|un|una|unos|unas|lo)\s+/,"").replace(/\s+/g," ").trim();}
+function mwPos(es){const t=String(es).trim().toLowerCase();if(/^(el|la|los|las|un|una)\s/.test(t))return "noun";if(!/\s/.test(t)&&/(ar|er|ir|ír)(se)?$/.test(t))return "verb";return "other";}
+function mwEntry(m){const x=(m.ex||[])[0]||{};const sh=String(m.uk||"").split(/[;,]/)[0].trim();return [m.es,m.uk,mwPos(m.es),x.es||"",x.uk||"",0,sh||m.uk];}
+function injectMW(){const mw=S.mw||{};for(const id in mw){const m=mw[id];if(+id>=MW0&&m&&m.es)LIB[+id]=mwEntry(m);}}
+const mwOk=id=>id<MW0||!!(S.mw&&S.mw[id]&&LIB[id]);
+function baseId(k){if(!BMAP){BMAP=[new Map(),new Map()];for(let i=0;i<NB;i++){const kk=mwKey(LIB[i][0]);if(!BMAP[0].has(kk))BMAP[0].set(kk,i);const f=mwFold(kk);if(!BMAP[1].has(f))BMAP[1].set(f,i);}}
+  const a=BMAP[0].get(k);return a!=null?a:(BMAP[1].get(mwFold(k))??null);}
+function mwFind(k){for(const id in (S.mw||{}))if(mwKey(S.mw[id].es)===k)return +id;return null;}
+function mwAlloc(k){let h=5381;for(const c of k)h=((h*33)^c.charCodeAt(0))>>>0;let id=MW0+h%100000;while((S.mw[id]&&mwKey(S.mw[id].es)!==k)||(id<MW0+100000&&S.p[id]&&!S.mw[id]))id=MW0+((id-MW0+1)%100000);return id;}
+function mwDay(v){const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(v||""));if(!m)return 0;const d=Date.UTC(+m[1],+m[2]-1,+m[3])/86400000;return d>0&&d<=today()+1?d:0;}
+function mwParse(txt){txt=String(txt||"").trim();if(!txt)throw new Error("Поле порожнє — встав JSON-блок із чату-тренера.");
+  const a=txt.search(/[\[{]/),b=Math.max(txt.lastIndexOf("]"),txt.lastIndexOf("}"));
+  if(a<0)throw new Error("Не бачу JSON. Скопіюй блок повністю — від [ до ].");
+  if(b<a)throw new Error("JSON обрізаний. Скопіюй блок до кінця — до останньої ].");
+  const raw=txt.slice(a,b+1);let d;
+  try{d=JSON.parse(raw);}catch(e){try{d=JSON.parse(raw.replace(/[“”„]/g,'"'));}catch(e2){throw new Error("JSON зламаний. Скопіюй блок у чаті-тренері ще раз — повністю, від [ до ].");}}
+  if(!Array.isArray(d))d=[d];return d;}
+function mwImport(txt){const arr=mwParse(txt);S.mw=S.mw||{};const t=today();let add=0,upd=0,bad=0;const badN=[];
+  const str=v=>typeof v==="string"?v.trim():"";
+  arr.forEach((o,i)=>{
+    if(!o||typeof o!=="object"||!str(o.es)||!str(o.uk)){bad++;badN.push(i+1);return;}
+    const k=mwKey(o.es);if(!k){bad++;badN.push(i+1);return;}
+    const day=mwDay(o.date)||t;
+    let id=mwFind(k);if(id==null){const b=baseId(k);id=b!=null?b:mwAlloc(k);}
+    let m=S.mw[id];
+    if(!m){m=S.mw[id]={es:str(o.es),tr:"",uk:str(o.uk),hs:"",hr:"",ex:[],tp:"",src:id>=MW0?"life":"base",d:day,h:[[day,"a"]]};if(id>=MW0)add++;else upd++;}
+    else{upd++;m.h.push([t,"u"]);if(id>=MW0)m.uk=str(o.uk)||m.uk;}
+    if(str(o.tr))m.tr=str(o.tr); if(str(o.hook_sound))m.hs=str(o.hook_sound); if(str(o.hook_root))m.hr=str(o.hook_root); if(str(o.topic))m.tp=str(o.topic);
+    (Array.isArray(o.examples)?o.examples:[]).forEach(x=>{if(!x||!str(x.es))return;if(m.ex.some(y=>mwFold(y.es)===mwFold(x.es)))return;m.ex.push({es:str(x.es),tr:str(x.tr),uk:str(x.uk)});});
+    if(m.h.length>40)m.h=m.h.slice(0,1).concat(m.h.slice(-39));
+    if(!S.p[id]||S.p[id][0]===0){S.pri=S.pri||[];S.pri=[id].concat(S.pri.filter(x=>x!==id));}   // нове — першим у тест
+  });
+  injectMW();persist();return {add,upd,bad,badN,total:arr.length};}
+function mwMerge(d){if(!d||typeof d!=="object")return;S.mw=S.mw||{};
+  for(const id in d){const a=S.mw[id],b=d[id];if(!b||!b.es)continue;if(!a){S.mw[id]=b;continue;}
+    const hs=new Map();[...(a.h||[]),...(b.h||[])].forEach(x=>hs.set(JSON.stringify(x),x));a.h=[...hs.values()].sort((x,y)=>x[0]-y[0]).slice(-40);
+    (b.ex||[]).forEach(x=>{if(!(a.ex||[]).some(y=>mwFold(y.es)===mwFold(x.es)))(a.ex=a.ex||[]).push(x);});
+    ["tr","hs","hr","tp"].forEach(f=>{if(!a[f]&&b[f])a[f]=b[f];});a.d=Math.min(a.d||b.d,b.d||a.d);}
+  injectMW();}
+// озвучка для слів без готового звуку: голос пристрою (es-ES)
+function ttsSay(text,slow){return new Promise((ok,no)=>{const ss=window.speechSynthesis;if(!ss||!window.SpeechSynthesisUtterance||!text){no(new Error("notts"));return;}
+  stopAudio();ss.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="es-ES";const vs=ss.getVoices();const v=vs.find(x=>/^es[-_]ES/i.test(x.lang))||vs.find(x=>/^es/i.test(x.lang));if(v)u.voice=v;
+  u.rate=slow?0.7:(S.slow?0.8:0.95);u.onend=()=>ok();u.onerror=()=>no(new Error("tts"));ss.speak(u);});}
+function hookHtml(id){const m=(S.mw||{})[id];if(!m||(!m.hs&&!m.hr))return "";
+  return `<div class="hooks">${m.hs?`<div class="hook"><span>🎧</span><span>${esc(m.hs)}</span></div>`:""}${m.hr?`<div class="hook"><span>🌱</span><span>${esc(m.hr)}</span></div>`:""}</div>`;}
+const trHtml=id=>{const m=(S.mw||{})[id];return m&&m.tr?`<div class="mwtr">[${esc(m.tr)}]</div>`:"";};
 function useKid(){KID=S.kind==="kid";if(KID){LIB=KLIB;LA=KLA;STORIES=KSTORIES;LPFX="klib_";GOAL=200;}}
 useKid();
+NB=LIB.length;injectMW();
 (async()=>{
   if(TGW){try{TGW.ready();TGW.expand();if(TGW.disableVerticalSwipes)TGW.disableVerticalSwipes();
       const bg=getComputedStyle(document.body).backgroundColor.match(/\d+/g);if(bg){const hx="#"+bg.slice(0,3).map(v=>(+v).toString(16).padStart(2,"0")).join("");TGW.setBackgroundColor&&TGW.setBackgroundColor(hx);TGW.setHeaderColor&&TGW.setHeaderColor(hx);}
@@ -601,7 +698,7 @@ function beep(ok){if(S.mute)return;const c=AC();if(!c)return;const o=c.createOsc
 const HAP=TGW&&TGW.HapticFeedback;
 function hap(kind){try{if(!HAP)return;if(kind==="ok")HAP.notificationOccurred("success");else if(kind==="no")HAP.notificationOccurred("error");else HAP.impactOccurred("light");}catch(e){}}
 const libSrc=(kind,o)=>`audio/${LPFX}${kind}${o[0]}.mp3`;
-function libSay(id,kind,slow){const o=(LA[kind]||[])[id];if(!o)return Promise.reject(new Error("none"));return playSeg(libSrc(kind,o),o[1],o[2],slow?0.6:(S.slow?0.75:1));}
+function libSay(id,kind,slow){const o=(LA[kind]||[])[id];if(!o){if(id>=MW0&&LIB[id])return ttsSay(kind==="x"?LIB[id][3]:LIB[id][0],slow);return Promise.reject(new Error("none"));}return playSeg(libSrc(kind,o),o[1],o[2],slow?0.6:(S.slow?0.75:1));}
 function prefetchIds(ids){const set=new Set();ids.forEach(id=>{["w","x"].forEach(k=>{const o=(LA[k]||[])[id];if(o)set.add(libSrc(k,o));});});set.forEach(player);}
 
 // ===== вкладки =====
@@ -611,7 +708,7 @@ function show(v){
   view=v; closeSheet(); if(v!=="stories")stopStory();
   ["today","words","dialogs","phrases","stories"].forEach(x=>$("v-"+x).hidden=x!==v);
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.v===v));
-  if(v==="today")renderToday(); if(v==="words")renderWords(true); if(v==="stories"){renderStory();renderEar();} if(v==="dialogs"){stopAudio();KID?renderGame():renderDlgList();} if(v==="phrases"){stopAudio();renderPtList();} if(v!=="phrases")islRun++;
+  if(v==="today")renderToday(); if(v==="words"){renderWords(true);renderMine();} if(v==="stories"){renderStory();renderEar();} if(v==="dialogs"){stopAudio();KID?renderGame():renderDlgList();} if(v==="phrases"){stopAudio();renderPtList();} if(v!=="phrases")islRun++;
   window.scrollTo({top:0}); ls.set("e2k_view",v);
   try{if(TGW){if(v==="today"&&!Q)TGW.BackButton.hide();else TGW.BackButton.show();}}catch(e){}
 }
@@ -641,7 +738,7 @@ function renderToday(){
   $("hello").textContent=h<12?"¡Buenos días!":h<20?"¡Buenas tardes!":"¡Buenas noches!";
   $("heroSub").textContent=(h<12?"Доброго ранку":h<20?"Доброго дня":"Доброго вечора")+` · день ${Math.min(day,DAYS)} з ${DAYS}`;
   const L=S.log[today()]||{};
-  const spk=Object.keys(S.p).filter(id=>S.p[id][0]>0&&LIB[id][3]).length;
+  const spk=Object.keys(S.p).filter(id=>S.p[id][0]>0&&LIB[id]&&LIB[id][3]).length;
   const qOn=due===0&&left===0, sOn=!!L.st;
   const mW=Math.max(2,Math.round(left*0.35+Math.min(due,60)*0.12)), mS=S.daily<=20?5:10;
   let go;
@@ -656,7 +753,7 @@ function renderToday(){
   }else{
     // День за методикою: Конструктор → Повторення → Слух → Голос (+ Коментатор)
     $("stStory").hidden=true;
-    const spk=Object.keys(S.p).filter(id=>S.p[id][0]>0&&LIB[id][3]).length;
+    const spk=Object.keys(S.p).filter(id=>S.p[id][0]>0&&LIB[id]&&LIB[id][3]).length;
     const mT=10, mE=earMin(), mP=15;
     const tOn=(L.pt||0)>=8, eOn=(L.ear||0)>=mE, pOn=(L.sp||0)>=10||!!L.isl, hOn=!!L.th;
     $("planH").textContent=`Мій день · ~${(tOn?0:mT)+(qOn?0:mW)+(eOn?0:mE)+(pOn?0:mP)} хв`;
@@ -720,13 +817,13 @@ let ROUND=10;   // нових слів за раунд — коротко, що�
 if(KID)ROUND=5;
 function roundInfo(){const total=Math.max(1,Math.ceil(S.daily/ROUND));return {no:Math.min(total,Math.floor(newToday()/ROUND)+1),total};}
 function nextNewIds(n){const r=[];const free=id=>!S.p[id]||S.p[id][0]===0;
-  (S.pri||[]).forEach(id=>{if(r.length<n&&free(id))r.push(id);});
-  for(let id=0;id<LIB.length&&r.length<n;id++){if(free(id)&&!r.includes(id))r.push(id);}return r;}
+  (S.pri||[]).forEach(id=>{if(r.length<n&&free(id)&&mwOk(id))r.push(id);});
+  for(let id=0;id<NB&&r.length<n;id++){if(free(id)&&!r.includes(id))r.push(id);}return r;}
 const words=t=>new Set(String(t).toLowerCase().split(/[^a-zа-яіїєґ'ʼáéíóúñü]+/i).filter(w=>w.length>=3));
 function pickDistractors(id,field){
   const pos=LIB[id][2], out=new Set(), val=LIB[id][field], mine=words(LIB[id][6]);
   let tries=0;
-  while(out.size<3&&tries<600){tries++;const j=Math.floor(Math.random()*LIB.length);
+  while(out.size<3&&tries<600){tries++;const j=Math.floor(Math.random()*NB);
     if(j===id)continue; if(tries<300&&LIB[j][2]!==pos)continue; const v=LIB[j][field]; if(v===val||out.has(v))continue;
     if([...words(LIB[j][6])].some(w=>mine.has(w)))continue;   // синоніми й перетини не підсовуємо
     out.add(v);}
@@ -757,13 +854,13 @@ function startQuiz(extraNew){
   openQuiz();
 }
 // дорослим — без вибору з варіантів: пригадати й сказати вголос (75%) або почути й зрозуміти (25%)
-function rndType(id){if(!KID)return S.mute||Math.random()<.75?"say":"hear";const b=(S.p[id]||[0])[0];const r=Math.random();if(S.mute)return b<=1||r<.5?"rec":"prod";if(b<=1)return r<.6?"rec":"aud";return r<.4?"prod":r<.7?"aud":"rec";}
+function rndType(id){if(!KID&&id>=MW0)return "say";if(!KID)return S.mute||Math.random()<.75?"say":"hear";const b=(S.p[id]||[0])[0];const r=Math.random();if(S.mute)return b<=1||r<.5?"rec":"prod";if(b<=1)return r<.6?"rec":"aud";return r<.4?"prod":r<.7?"aud":"rec";}
 const newType=()=>!KID?"say":S.mute?"rec":(Math.random()<.7?"rec":"aud");
 // нове дієслово одразу в патерні: «Tengo que + llamar»
 function patFor(id){const e=LIB[id];if(KID||e[2]!=="verb"||!/(ar|er|ir|ír)(se)?$/.test(e[0])||NOBLD.has(e[0]))return null;
   let i=ptDay();if(!PAT[i].b)i=1;return {i,p:PAT[i]};}
 function startSpeak(){
-  const all=Object.keys(S.p).filter(id=>S.p[id][0]>0&&LIB[id][3]).map(Number);
+  const all=Object.keys(S.p).filter(id=>S.p[id][0]>0&&LIB[id]&&LIB[id][3]).map(Number);
   const wc=id=>LIB[id][3].split(/\s+/).length;
   // спершу короткі фрази зі слів, які вже трохи закріплені
   const c=counts(), early=c.learned+c.learning<150;
@@ -786,7 +883,9 @@ function grade(id,ok){
   const t=today(); const e=S.p[id]||[0,t,0,0];
   if(ok&&e[0]<=1&&e[2]+e[3]===0){e[0]=1;e[1]=t+1;e[2]++;}            // нове слово: перший повтор уже завтра
   else if(ok){e[0]=Math.min(e[0]+1,6);e[1]=t+INT[e[0]];e[2]++;}else{e[0]=1;e[1]=t;e[3]++;}
-  S.p[id]=e; logAdd("r",1); if(ok)logAdd("c",1); persist();
+  S.p[id]=e; logAdd("r",1); if(ok)logAdd("c",1);
+  const mw=(S.mw||{})[id]; if(mw){mw.h=mw.h||[];mw.h.push([t,ok?1:0]);if(mw.h.length>40)mw.h=mw.h.slice(0,1).concat(mw.h.slice(-39));}
+  persist();
 }
 function head(){
   const pct=Q.items.length?100*Q.i/Q.items.length:0;
@@ -821,7 +920,7 @@ function drawQ(){
   const it=Q.items[Q.i], e=LIB[it.id];
   let h=head();
   if(it.type==="intro"){
-    h+=`<div class="qcard"><div class="qhint">Нове слово</div>${e[7]?`<div class="pic">${e[7]}</div>`:""}<div class="qword">${esc(e[0])}</div><div class="qsub">${esc(e[1])}</div>${spkBtn(it.id,"w",true)}
+    h+=`<div class="qcard"><div class="qhint">Нове слово</div>${e[7]?`<div class="pic">${e[7]}</div>`:""}<div class="qword">${esc(e[0])}</div>${trHtml(it.id)}<div class="qsub">${esc(e[1])}</div>${spkBtn(it.id,"w",true)}${hookHtml(it.id)}
       ${(()=>{const pf=patFor(it.id);return pf?`<div class="bout" style="align-items:center;width:100%"><div class="qhint" style="margin:0">🧩 У фразі</div><div class="es" style="font-size:20px"><span class="ph">${esc(pf.p.h)}</span> ${esc(e[0])}</div><div class="uk">${esc(pf.p.b)} ${esc(ukInf(it.id))}</div><button class="btn" id="qPat" type="button">▶ Послухати</button></div>`:"";})()}
       ${e[3]?`<div class="qex">${esc(e[3])}</div><div class="qexuk">${esc(e[4])}</div>${spkBtn(it.id,"x",false)}`:""}</div>
       <button class="btn main big" id="qNext" type="button"><kbd>Enter</kbd>Далі</button>`;
@@ -858,7 +957,7 @@ function drawQ(){
     const say=it.type==="say", pf=patFor(it.id);
     h+=`<div class="qcard">${say?`<div class="qhint">Скажи іспанською вголос</div><div class="qword" style="font-size:clamp(24px,7vw,34px)">${esc(e[6])}</div>`
         :`<div class="qhint">Послухай — що це означає? Скажи подумки</div>${spkBtn(it.id,"w",true)}`}
-      <div id="spAns" hidden style="display:flex;flex-direction:column;gap:6px;align-items:center;width:100%"><div class="qword">${esc(e[0])}</div><div class="qsub">${esc(e[1])}</div>${say?spkBtn(it.id,"w",false):""}
+      <div id="spAns" hidden style="display:flex;flex-direction:column;gap:6px;align-items:center;width:100%"><div class="qword">${esc(e[0])}</div>${trHtml(it.id)}<div class="qsub">${esc(e[1])}</div>${say?spkBtn(it.id,"w",false):""}${hookHtml(it.id)}
         ${pf?`<div class="qex" style="font-size:17px"><span class="ph">${esc(pf.p.h)}</span> ${esc(e[0])} — <span class="muted">${esc(pf.p.b)} ${esc(ukInf(it.id))}</span></div>`:e[3]?`<div class="qex" style="font-size:17px">${markWord(e[3],e[0])}</div><div class="qexuk">${esc(e[4])}</div>`:""}</div></div>
       <div class="grade" id="spBtns"><button class="btn main big" id="spShow" type="button" style="grid-column:1/-1"><kbd>Enter</kbd>Відповідь</button></div>
       <div class="grade" id="spGrade" hidden><button class="btn big no" id="gNo" type="button"><kbd>←</kbd>${say?"Не згадав":"Не зрозумів"}</button><button class="btn big ok" id="gYes" type="button"><kbd>→</kbd>${say?"Згадав":"Зрозумів"}</button></div>`;
@@ -893,7 +992,7 @@ function drawQ(){
         let pos=Q.i+1,seen=0; while(pos<Q.items.length&&seen<3){if(Q.items[pos].type!=="intro")seen++;pos++;}
         Q.items.splice(pos,0,{id:it.id,type:"rec"}); }
       if(prod||aud)if(!S.mute)libSay(it.id,"w").catch(()=>{});
-      $("after").innerHTML=`<div class="card" style="gap:6px"><div><b>${esc(e[0])}</b> — ${esc(e[1])}</div>${e[3]?`<div class="qex" style="font-size:16px">${esc(e[3])}</div><div class="qexuk">${esc(e[4])}</div>`:""}</div>
+      $("after").innerHTML=`<div class="card" style="gap:6px"><div><b>${esc(e[0])}</b> — ${esc(e[1])}</div>${hookHtml(it.id)}${e[3]?`<div class="qex" style="font-size:16px">${esc(e[3])}</div><div class="qexuk">${esc(e[4])}</div>`:""}</div>
         <button class="btn main big" id="qNext" type="button" style="margin-top:8px">Далі</button>`;
       $("qNext").onclick=()=>{Q.i++;drawQ();};
       if(ok)setTimeout(()=>{if(Q&&Q.items[Q.i]===it&&$("qNext")){Q.i++;drawQ();}},1500);
@@ -910,7 +1009,7 @@ function earMin(){const m=S.mins||20;return m>=60?25:m>=20?15:10;}   // мето
 $("stThink").onclick=()=>{const L=S.log[today()]||{};logAdd("th",L.th?-1:1);if(!L.th){hap("ok");beep(true);}persist();renderToday();};
 // клавіатура на комп'ютері: 1–4 відповіді, Enter — далі, ← / → — оцінка
 document.addEventListener("keydown",e=>{
-  if(e.target.tagName==="INPUT")return;
+  if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA")return;
   if(e.key==="Escape"){ if(!$("sheet").hidden)closeSheet(); else if(Q&&view==="today")closeQuiz(); return; }
   if(view==="stories"&&e.key===" "){e.preventDefault();$("play").click();return;}
   if(!Q||$("quizView").hidden||view!=="today")return;
@@ -929,7 +1028,7 @@ function renderWords(reset){
   const c=counts(); $("wLearned").textContent=c.learned; $("wLearning").textContent=c.learning; $("wNew").textContent=c.fresh;
   const q=fold(wq.trim());
   const rows=[];
-  for(let id=0;id<LIB.length;id++){
+  for(let id=0;id<NB;id++){
     const e=LIB[id], st=status(id);
     if(wf==="k"&&!e[5])continue; if(wf!=="all"&&wf!=="k"&&st!==+wf)continue;
     if(q&&!(fold(e[0]).includes(q)||e[1].toLowerCase().includes(q)))continue;
@@ -943,6 +1042,52 @@ function renderWords(reset){
 $("moreBtn").onclick=()=>{wShown+=120;renderWords();};
 $("search").addEventListener("input",e=>{wq=e.target.value;renderWords(true);});
 document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{wf=b.dataset.f;document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));renderWords(true);});
+// ----- Мої слова -----
+let wsMode=ls.get("e2k_ws")==="mine"?"mine":"all", mwWhen="all", mwTp="";
+const ddmm=d=>{const t=new Date(d*86400000);return t.getUTCDate()+"."+String(t.getUTCMonth()+1).padStart(2,"0");};
+const mwLast=m=>{let x=m.d||0;(m.h||[]).forEach(h=>{if(h[1]==="a"||h[1]==="u")x=Math.max(x,h[0]);});return x;};
+const forvo=es=>"https://forvo.com/word/"+encodeURIComponent(mwKey(es))+"/#es";
+function setWs(m){wsMode=m;ls.set("e2k_ws",m);document.querySelectorAll("[data-ws]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ws===m));$("wAll").hidden=m!=="all";$("wMine").hidden=m!=="mine";if(m==="mine")renderMine();}
+function histHtml(m){const h=m.h||[];const add=h.find(x=>x[1]==="a")||[m.d,"a"];
+  const rv=h.filter(x=>x[1]===1||x[1]===0), up=h.filter(x=>x[1]==="u").length;
+  const yes=rv.filter(x=>x[1]===1).length;
+  return `<div class="mwh"><i>➕ ${ddmm(add[0])} · ${m.src==="life"?"з тренера (нове)":"з тренера · є в базовому списку"}</i>${up?`<i>✏️ оновлено ${up}×</i>`:""}<br>`+
+    (rv.length?`<i>Повтори: ${yes}/${rv.length} знав</i> `+rv.slice(-6).map(x=>`<i class="${x[1]?"y":"n"}">${ddmm(x[0])} ${x[1]?"✓":"✗"}</i>`).join(""):`<i>Повторів ще не було — слово прийде в тест першим</i>`)+`</div>`;}
+function renderMine(){if(!$("mwList"))return;
+  const mw=S.mw||{}, all=Object.keys(mw).map(Number).filter(id=>LIB[id]);
+  $("mwN").textContent=all.length?` · ${all.length}`:"";
+  if(!all.length)$("mwImp").open=true;
+  const t=today();
+  const tps=[...new Set(all.map(id=>mw[id].tp).filter(Boolean))].sort();
+  if(mwTp&&!tps.includes(mwTp))mwTp="";
+  $("mwTop").innerHTML=tps.length>1?[`<button class="chip" type="button" data-tp="" aria-pressed="${!mwTp}">Усі теми</button>`,...tps.map(x=>`<button class="chip" type="button" data-tp="${esc(x)}" aria-pressed="${mwTp===x}">${esc(x)}</button>`)].join(""):"";
+  $("mwTop").querySelectorAll("[data-tp]").forEach(b=>b.onclick=()=>{mwTp=b.dataset.tp;renderMine();});
+  document.querySelectorAll("[data-mw]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mw===mwWhen));
+  const rows=all.filter(id=>{const L=mwLast(mw[id]);if(mwWhen==="d"&&L!==t)return false;if(mwWhen==="w"&&L<t-6)return false;if(mwTp&&mw[id].tp!==mwTp)return false;return true;})
+    .sort((a,b)=>(mwLast(mw[b])-mwLast(mw[a]))||((mw[b].h||[]).length-(mw[a].h||[]).length));
+  $("mwList").innerHTML=rows.map(id=>{const m=mw[id],st=status(id);
+    return `<details class="mwc" data-mid="${id}"><summary><b>${esc(m.es)}</b><span>${esc(m.uk)}</span><i class="dot s${st}"></i></summary><div class="mwb">
+      ${m.tr?`<div class="mwtr">[${esc(m.tr)}]</div>`:""}
+      <div class="row"><button class="btn" type="button" data-msay="${id}">🔊 Слухати</button><a class="btn" href="${forvo(m.es)}" target="_blank" rel="noopener" data-fv="${esc(forvo(m.es))}">🔊 Forvo</a></div>
+      ${hookHtml(id)||`<div class="muted" style="font-size:14px">Гачка ще немає</div>`}
+      ${(m.ex||[]).map(x=>`<div class="mwex"><div class="es">${esc(x.es)}</div>${x.tr?`<small>${esc(x.tr)}</small>`:""}${x.uk?`<span>${esc(x.uk)}</span>`:""}</div>`).join("")}
+      <div class="row" style="gap:6px">${m.src==="life"?`<span class="tag life">з життя</span>`:`<span class="tag">базовий список</span>`}${m.tp?`<span class="tag k">${esc(m.tp)}</span>`:""}${st===2?`<span class="tag n">вивчено</span>`:st===1?`<span class="tag l">вчу</span>`:`<span class="tag">чекає в тесті</span>`}</div>
+      ${histHtml(m)}</div></details>`;}).join("")
+    ||`<div class="card muted" style="font-size:15px">${all.length?"За цим фільтром слів немає.":"Тут з'являться слова з чату-тренера. Встав JSON-блок вище й натисни «Імпортувати»."}</div>`;
+  $("mwList").querySelectorAll("[data-msay]").forEach(b=>b.onclick=()=>libSay(+b.dataset.msay,"w").catch(()=>toast("Озвучка недоступна на цьому пристрої — натисни «Forvo»",2800)));
+  $("mwList").querySelectorAll("[data-fv]").forEach(a=>a.onclick=ev=>{try{if(TGW&&TGW.openLink){ev.preventDefault();TGW.openLink(a.dataset.fv);}}catch(e){}});
+}
+document.querySelectorAll("[data-ws]").forEach(b=>b.onclick=()=>setWs(b.dataset.ws));
+document.querySelectorAll("[data-mw]").forEach(b=>b.onclick=()=>{mwWhen=b.dataset.mw;renderMine();});
+$("mwPaste").onclick=async()=>{try{const t=await navigator.clipboard.readText();if(t){$("mwTxt").value=t;return;}}catch(e){}$("mwTxt").focus();toast("Не вдалося прочитати буфер — встав утриманням у полі",2600);};
+$("mwGo").onclick=()=>{const R=$("mwRes");R.hidden=false;
+  try{const r=mwImport($("mwTxt").value);
+    R.className="mwres "+(r.add+r.upd?"ok":"err");
+    R.innerHTML=`<b>Готово.</b> Нових: <b>${r.add}</b> · оновлено: <b>${r.upd}</b> · пропущено: <b>${r.bad}</b>`+(r.bad?`<br><span class="muted">Пропущено через формат (немає "es" чи "uk"): ${r.badN.slice(0,10).map(n=>"№"+n).join(", ")}</span>`:"")+(r.add?`<br><span class="muted">Нові слова прийдуть у тест першими.</span>`:"");
+    if(r.add+r.upd){$("mwTxt").value="";hap("ok");beep(true);mwWhen="all";mwTp="";}else hap("no");
+    renderMine();}
+  catch(e){R.className="mwres err";R.innerHTML=`<b>Не імпортовано.</b> ${esc(e.message)}`;hap("no");}};
+setWs(wsMode);
 $("wordList").addEventListener("click",e=>{const li=e.target.closest(".li");if(!li)return;openLibSheet(+li.dataset.id);});
 
 // ===== шторка =====
@@ -1280,7 +1425,7 @@ let gameT0=0,gameTimer=0;
 function renderGame(){
   $("dlgList").hidden=true;const V=$("dlgView");V.hidden=false;
   let pool=Object.keys(S.p).filter(id=>S.p[id][0]>0).map(Number);
-  if(pool.length<6)pool=pool.concat([...Array(LIB.length).keys()].filter(i=>!pool.includes(i)).slice(0,6-pool.length));
+  if(pool.length<6)pool=pool.concat([...Array(NB).keys()].filter(i=>!pool.includes(i)).slice(0,6-pool.length));
   const pick=shuffle(pool).slice(0,6);
   const cards=shuffle(pick.flatMap(id=>[{id,t:"pic"},{id,t:"w"}]));
   const best=+(ls.get("e2k_best")||0);
