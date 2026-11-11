@@ -44,6 +44,12 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--paper);border-top:1px solid var(--line);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px));padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabs-in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 html.kid .tabs-in{grid-template-columns:repeat(4,1fr)}
+html.lite .tabs-in{grid-template-columns:repeat(3,1fr)}
+html.lite .card.goal,html.lite #todayHome>.kpis,html.lite #planCard,html.lite #weekCard,html.lite #histCard{display:none!important}
+.pbtn{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;text-align:left;width:100%;border:1px solid var(--line);background:var(--paper);color:var(--fg);border-radius:14px;padding:14px;cursor:pointer;font:inherit}
+.pbtn .ic{font-size:26px;text-align:center}.pbtn b{display:block;font-size:17px}.pbtn small{color:var(--muted);font-size:14px}.pbtn em{font-style:normal;color:var(--muted);font-size:22px}
+.pbtn:disabled{opacity:.55;cursor:default}
+a.sdl{color:var(--accent);font-weight:600;text-decoration:none;font-size:15px}
 .tab{border:none;background:none;color:var(--muted);padding:10px 4px 12px;font:600 13px var(--body);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
 .tab svg{width:22px;height:22px}
 .tab[aria-selected="true"]{color:var(--accent)}
@@ -304,6 +310,12 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
         <button class="profbtn" id="profBtn" type="button"></button>
         <button class="hero-go" id="heroGo" type="button"></button>
       </header>
+      <div class="card" id="pracCard" hidden>
+        <button class="pbtn" type="button" id="pRep"><span class="ic">🔁</span><span><b>Повторити слова</b><small id="pRepSub"></small></span><em>›</em></button>
+        <button class="pbtn" type="button" id="pSent"><span class="ic">🗣</span><span><b>Речення з моїми словами</b><small id="pSentSub"></small></span><em>›</em></button>
+        <button class="pbtn" type="button" id="pPat"><span class="ic">🧩</span><span><b>Конструктор фраз</b><small>патерн + дієслово · острівці про себе</small></span><em>›</em></button>
+        <button class="pbtn" type="button" id="pMine"><span class="ic">✍️</span><span><b>Мої слова</b><small id="pMineSub"></small></span><em>›</em></button>
+      </div>
       <div class="card goal">
         <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
           <circle cx="50" cy="50" r="42" fill="none" stroke="var(--line)" stroke-width="10"/>
@@ -324,7 +336,7 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
         <div class="kpi"><b id="kNew">0</b><span>нових сьогодні</span></div>
         <div class="kpi"><b id="kStreak">0</b><span id="kStreakL">днів поспіль</span></div>
       </div>
-      <div class="card">
+      <div class="card" id="planCard">
         <h2 id="planH">План на сьогодні</h2>
         <div class="stage" id="stage" hidden></div>
         <div class="steps" id="steps">
@@ -341,7 +353,7 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
         <div class="wk" id="wkGrid"></div>
         <button class="btn" id="wkSend" type="button">📤 Надіслати звіт у чат бота</button>
       </div>
-      <div class="card">
+      <div class="card" id="histCard">
         <h2>Історія занять</h2>
         <div class="hist" id="hist" aria-label="Карток за останні 14 днів"></div>
         <div class="histlist" id="histList"></div>
@@ -365,7 +377,7 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
 
   <!-- СЛОВА -->
   <section id="v-words" hidden style="display:flex;flex-direction:column;gap:12px">
-    <header><div class="label">Бібліотека</div><h1>Слова</h1></header>
+    <header><h1>Слова</h1></header>
     <div class="seg" role="group" aria-label="Які слова показати"><button type="button" data-ws="all" aria-pressed="true">Усі слова</button><button type="button" data-ws="mine" aria-pressed="false">✍️ Мої слова<span id="mwN"></span></button></div>
     <div id="wAll" style="display:flex;flex-direction:column;gap:12px">
     <div class="kpis">
@@ -411,6 +423,7 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
   <!-- ФРАЗИ: конструктор -->
   <section id="v-phrases" hidden style="display:flex;flex-direction:column;gap:12px">
     <div id="ptList" style="display:flex;flex-direction:column;gap:12px">
+      <button class="btn" id="ptHome" type="button" style="align-self:flex-start">← Практика</button>
       <header><div class="label">Конструктор фраз</div><h1>Будую фрази</h1><div class="muted">Патерн + дієслово в початковій формі. Змінюєш тільки перше слово, друге не чіпаєш.</div></header>
       <div class="card" style="gap:6px"><b id="ptToday">Сьогодні вголос: 0</b><div class="bar"><i id="ptBar" style="width:0"></i></div><span class="muted" style="font-size:13px">Мета на день — 15 речень своїм голосом</span></div>
       <div class="dgrid" id="ptGrid"></div>
@@ -621,10 +634,6 @@ function mwMerge(d){if(!d||typeof d!=="object")return;S.mw=S.mw||{};
     (b.ex||[]).forEach(x=>{if(!(a.ex||[]).some(y=>mwFold(y.es)===mwFold(x.es)))(a.ex=a.ex||[]).push(x);});
     ["tr","hs","hr","tp"].forEach(f=>{if(!a[f]&&b[f])a[f]=b[f];});a.d=Math.min(a.d||b.d,b.d||a.d);}
   injectMW();}
-// озвучка для слів без готового звуку: голос пристрою (es-ES)
-function ttsSay(text,slow){return new Promise((ok,no)=>{const ss=window.speechSynthesis;if(!ss||!window.SpeechSynthesisUtterance||!text){no(new Error("notts"));return;}
-  stopAudio();ss.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="es-ES";const vs=ss.getVoices();const v=vs.find(x=>/^es[-_]ES/i.test(x.lang))||vs.find(x=>/^es/i.test(x.lang));if(v)u.voice=v;
-  u.rate=slow?0.7:(S.slow?0.8:0.95);u.onend=()=>ok();u.onerror=()=>no(new Error("tts"));ss.speak(u);});}
 function hookHtml(id){const m=(S.mw||{})[id];if(!m||(!m.hs&&!m.hr))return "";
   return `<div class="hooks">${m.hs?`<div class="hook"><span>🎧</span><span>${esc(m.hs)}</span></div>`:""}${m.hr?`<div class="hook"><span>🌱</span><span>${esc(m.hr)}</span></div>`:""}</div>`;}
 const trHtml=id=>{const m=(S.mw||{})[id];return m&&m.tr?`<div class="mwtr">[${esc(m.tr)}]</div>`:"";};
@@ -662,6 +671,19 @@ function confetti(){if(matchMedia("(prefers-reduced-motion: reduce)").matches)re
   let f=0;(function step(){x.clearRect(0,0,W,H);P.forEach(p=>{p.vy+=.25;p.x+=p.vx;p.y+=p.vy;p.r+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore();});
     if(++f<110)requestAnimationFrame(step);else cv.remove();})();}
 // ===== аудіо =====
+// живий голос: записи носіїв з Wikimedia Commons (проєкт Lingua Libre), вільна ліцензія
+let curLive=null; const LIVE=(()=>{try{return JSON.parse(localStorage.getItem("e2k_live")||"{}")}catch(e){return {}}})();
+async function liveUrl(w){const k=mwKey(w);if(!k||/\s/.test(k))return null;if(k in LIVE)return LIVE[k];
+  const q=encodeURIComponent(`"${k}.wav" LL-Q1321 spa`);
+  const r=await fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${q}&gsrnamespace=6&gsrlimit=15&prop=imageinfo&iiprop=url&format=json&origin=*`).then(x=>x.json());
+  const re=new RegExp("\\(spa\\)-.+-"+k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\.wav$","i");
+  const pages=Object.values((r.query||{}).pages||{}).filter(x=>re.test(x.title)&&x.imageinfo);
+  const u=pages.length?pages[0].imageinfo[0].url:null; LIVE[k]=u; try{localStorage.setItem("e2k_live",JSON.stringify(LIVE));}catch(e){} return u;}
+function liveSay(w,slow){stopAudio();const tok={};pendingTok=tok;const t=setTimeout(()=>{if(pendingTok===tok)toast("Завантажую живий голос…");},450);
+  return liveUrl(w).then(u=>{clearTimeout(t);untoast();if(!u)throw new Error("nolive");if(pendingTok!==tok)return;
+    return new Promise((ok,no)=>{const a=new Audio(u);a.playbackRate=slow?0.7:1;a.preservesPitch=true;curLive=a;a.onended=()=>{if(curLive===a)curLive=null;ok();};a.onerror=()=>no(new Error("liveplay"));a.play().catch(no);});})
+    .catch(e=>{clearTimeout(t);untoast();throw e;});}
+const sdUrl=t=>"https://www.spanishdict.com/translate/"+encodeURIComponent(t);
 // Web Audio: точне відтворення шматка з файлу (без перемотування mp3), працює і в Telegram на iPhone
 let actx=null; const bufs={}, loading={};
 function AC(){if(!actx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;actx=new C();}if(actx.state==="suspended")actx.resume();return actx;}
@@ -672,7 +694,7 @@ function getBuf(src){if(bufs[src])return Promise.resolve(bufs[src]);
   return loading[src];}
 function player(src){getBuf(src).catch(()=>{});}
 let curA=null, raf=0, rate=0.8, onTick=null, pendingTok=null;
-function stopAudio(){pendingTok=null;if(curA){curA.node.onended=null;try{curA.node.stop();}catch(e){}curA=null;}cancelAnimationFrame(raf);}
+function stopAudio(){pendingTok=null;if(curLive){try{curLive.pause();}catch(e){}curLive=null;}if(curA){curA.node.onended=null;try{curA.node.stop();}catch(e){}curA=null;}cancelAnimationFrame(raf);}
 function curPos(){return curA?curA.s+(actx.currentTime-curA.t0)*curA.r:0;}
 function tick(){if(!curA)return;if(onTick)onTick(curPos());raf=requestAnimationFrame(tick);}
 function toast(t,ms){let el=$("toast");if(!el){el=document.createElement("div");el.id="toast";el.setAttribute("role","status");document.body.appendChild(el);}
@@ -698,16 +720,19 @@ function beep(ok){if(S.mute)return;const c=AC();if(!c)return;const o=c.createOsc
 const HAP=TGW&&TGW.HapticFeedback;
 function hap(kind){try{if(!HAP)return;if(kind==="ok")HAP.notificationOccurred("success");else if(kind==="no")HAP.notificationOccurred("error");else HAP.impactOccurred("light");}catch(e){}}
 const libSrc=(kind,o)=>`audio/${LPFX}${kind}${o[0]}.mp3`;
-function libSay(id,kind,slow){const o=(LA[kind]||[])[id];if(!o){if(id>=MW0&&LIB[id])return ttsSay(kind==="x"?LIB[id][3]:LIB[id][0],slow);return Promise.reject(new Error("none"));}return playSeg(libSrc(kind,o),o[1],o[2],slow?0.6:(S.slow?0.75:1));}
+function libSay(id,kind,slow){const o=(LA[kind]||[])[id];const mw=(S.mw||{})[id];
+  if(kind==="w"&&mw)return liveSay(mw.es,slow).catch(e=>{if(o)return playSeg(libSrc(kind,o),o[1],o[2],slow?0.6:(S.slow?0.75:1));throw e;});
+  if(!o)return Promise.reject(new Error("none"));return playSeg(libSrc(kind,o),o[1],o[2],slow?0.6:(S.slow?0.75:1));}
 function prefetchIds(ids){const set=new Set();ids.forEach(id=>{["w","x"].forEach(k=>{const o=(LA[k]||[])[id];if(o)set.add(libSrc(k,o));});});set.forEach(player);}
 
 // ===== вкладки =====
 let view="today";
 function show(v){
-  if(KID&&v==="phrases")v="today";
+  if(KID&&v==="phrases")v="today"; if(!KID&&v==="dialogs")v="today";
+  if(!KID)document.querySelectorAll(".tab").forEach(t=>{if(t.dataset.v==="today")t.classList.toggle("on-ph",v==="phrases");});
   view=v; closeSheet(); if(v!=="stories")stopStory();
   ["today","words","dialogs","phrases","stories"].forEach(x=>$("v-"+x).hidden=x!==v);
-  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.v===v));
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.v===v||(!KID&&v==="phrases"&&t.dataset.v==="today")));
   if(v==="today")renderToday(); if(v==="words"){renderWords(true);renderMine();} if(v==="stories"){renderStory();renderEar();} if(v==="dialogs"){stopAudio();KID?renderGame():renderDlgList();} if(v==="phrases"){stopAudio();renderPtList();} if(v!=="phrases")islRun++;
   window.scrollTo({top:0}); ls.set("e2k_view",v);
   try{if(TGW){if(v==="today"&&!Q)TGW.BackButton.hide();else TGW.BackButton.show();}}catch(e){}
@@ -751,30 +776,16 @@ function renderToday(){
     const nx=[["stQuiz",qOn],["stStory",sOn]].find(x=>!x[1]);if(nx)$(nx[0]).classList.add("next");
     go=!S.triage?["Почати · 3 хв",startTriage]:!qOn?[left>0?`Слова · раунд ${roundInfo().no} з ${roundInfo().total}`:`Повторити · ${due}`,()=>$("stQuiz").click()]:!sOn?["Далі: історія",()=>show("stories")]:["Ще 10 нових слів",()=>startQuiz(10)];
   }else{
-    // День за методикою: Конструктор → Повторення → Слух → Голос (+ Коментатор)
-    $("stStory").hidden=true;
-    const spk=Object.keys(S.p).filter(id=>S.p[id][0]>0&&LIB[id]&&LIB[id][3]).length;
-    const mT=10, mE=earMin(), mP=15;
-    const tOn=(L.pt||0)>=8, eOn=(L.ear||0)>=mE, pOn=(L.sp||0)>=10||!!L.isl, hOn=!!L.th;
-    $("planH").textContent=`Мій день · ~${(tOn?0:mT)+(qOn?0:mW)+(eOn?0:mE)+(pOn?0:mP)} хв`;
-    const pd=PAT[ptDay()];
-    $("stPatSub").textContent=tOn?`Готово · ${L.pt} ${plural(L.pt,"речення","речення","речень")} вголос`:`ранок · ${mT} хв · ${pd.h} + … · ${L.pt||0}/8 речень вголос`;
-    $("stQuizSub").textContent=qOn?"Готово · можна ще 10 нових":`ранок · ~${mW} хв · ${left} нових · ${due} повторити`;
-    $("stEarSub").textContent=eOn?`Готово · ${L.ear} хв слухання`:`дорога / тренування · ${L.ear||0}/${mE} хв · історія з твоїх слів або подкаст`;
-    $("stSpeakSub").textContent=pOn?"Готово · говорив вголос":spk<5?`вечір · ${mP} хв · розкажи острівець «Хто я»`:`вечір · ${mP} хв · фрази вголос ${L.sp||0}/10 або острівець`;
-    $("stThinkSub").textContent=hOn?"Готово · думав іспанською":"протягом дня · описуй свої дії іспанською подумки · тапни ввечері";
-    const steps=[["stPat",tOn],["stQuiz",qOn],["stEar",eOn],["stSpeak",pOn],["stThink",hOn]];
-    steps.forEach(([id,on])=>{$(id).hidden=false;$(id).disabled=false;$(id).classList.toggle("on",on);$(id).classList.remove("next");});
-    const nx=steps.find(x=>!x[1]);if(nx)$(nx[0]).classList.add("next");
-    // етап програми
-    const day=Math.max(1,today()-S.start+1), inw=c.learned+c.learning;
-    const patDone=PAT.filter((_,i)=>ptOk(i).length>=PAT[i].s.length).length, islDone=Object.keys(S.isl||{}).length;
-    const ST=[[14,"Тижні 1–2","9 патернів · 450 слів · острівець «Хто я»",450,9,1],[28,"Тижні 3–4","1000 слів · ser/estar · теперішній час · 3 острівці",1000,9,3],[56,"Тижні 5–8","2000 слів · минулий час · розмови без підготовки",2000,9,6],[1e9,"Далі","нативний контент · реальні дзвінки · робоча лексика",2000,9,6]];
-    const sg=ST.find(x=>day<=x[0]);
-    $("stage").hidden=false;$("stage").innerHTML=`<b>${sg[1]} · день ${day}</b><span>${sg[2]}</span><span>слів ${Math.min(inw,sg[3])}/${sg[3]} · патернів ${patDone}/${sg[4]} · острівців ${Math.min(islDone,sg[5])}/${sg[5]}</span>`;
-    const earGo=()=>show("stories"), spGo=()=>{if(spk<5){show("phrases");openIsl(0);}else startSpeak();};
-    go=!S.triage?["Почати · 3 хв",startTriage]:!tOn?[`Конструктор: ${pd.h} + …`,()=>{show("phrases");openPt(ptDay());}]:!qOn?[left>0?`Слова · ${left} нових`:`Повторити · ${due}`,()=>$("stQuiz").click()]:!eOn?["Далі: слух",earGo]:!pOn?["Далі: голос",spGo]:["Ще 10 нових слів",()=>startQuiz(10)];
-    $("stEar").onclick=earGo; $("stSpeak").onclick=spGo;
+    // Практика: повтор моїх слів · речення з ними · конструктор
+    const nNew=mwFreeIds().length, nMw=Object.keys(S.mw||{}).filter(id=>LIB[id]).length, nS=mwSentPool().length;
+    const tAdd=Object.values(S.mw||{}).filter(m=>mwLast(m)===today()).length;
+    $("pracCard").hidden=false;
+    $("pRepSub").textContent=due+nNew?[due?`${due} повторити`:"",nNew?`${nNew} ${plural(nNew,"нове","нових","нових")}`:""].filter(Boolean).join(" · "):"на сьогодні все повторено ✓";
+    $("pSentSub").textContent=nS?`${Math.min(12,nMw)} ${plural(Math.min(12,nMw),"речення","речення","речень")} · кажеш вголос`:"з'явиться, коли додаси слова з прикладами";
+    $("pMineSub").textContent=nMw?`${nMw} ${plural(nMw,"слово","слова","слів")}${tAdd?` · сьогодні +${tAdd}`:""} · додати нові`:"додай перші слова з чату-тренера";
+    $("pSent").disabled=!nS;
+    $("heroSub").textContent=(h<12?"Доброго ранку":h<20?"Доброго дня":"Доброго вечора")+(streak()?` · ${streak()} ${plural(streak(),"день","дні","днів")} поспіль`:"");
+    go=!S.triage&&!nMw?["Почати · 3 хв",startTriage]:due+nNew?[due?`Повторити · ${due+nNew}`:`Нові слова · ${nNew}`,()=>startQuiz()]:nS?["Речення вголос",startMwSpeak]:nMw?["+10 слів із бази",()=>startQuiz(10)]:["Додати мої слова",()=>{show("words");setWs("mine");}];
   }
   $("heroGo").textContent=go[0]+" →"; $("heroGo").onclick=go[1];
   document.querySelectorAll("[data-daily]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.daily===S.daily));
@@ -816,6 +827,8 @@ let Q=null; // {mode, items:[{id,type}], i, ok, total}
 let ROUND=10;   // нових слів за раунд — коротко, щоб вміщалось у перерву
 if(KID)ROUND=5;
 function roundInfo(){const total=Math.max(1,Math.ceil(S.daily/ROUND));return {no:Math.min(total,Math.floor(newToday()/ROUND)+1),total};}
+function mwFreeIds(){const free=id=>!S.p[id]||S.p[id][0]===0;return (S.pri||[]).filter(id=>(S.mw||{})[id]&&free(id)&&mwOk(id));}
+function leftNewN(){return KID?Math.max(0,S.daily-newToday()):mwFreeIds().length;}
 function nextNewIds(n){const r=[];const free=id=>!S.p[id]||S.p[id][0]===0;
   (S.pri||[]).forEach(id=>{if(r.length<n&&free(id)&&mwOk(id))r.push(id);});
   for(let id=0;id<NB&&r.length<n;id++){if(free(id)&&!r.includes(id))r.push(id);}return r;}
@@ -836,7 +849,9 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 function startQuiz(extraNew){
   const due=shuffle(dueList()).slice(0,20);
   let left=Math.min(ROUND,Math.max(0,S.daily-newToday())); if(extraNew)left=extraNew;
-  const fresh=nextNewIds(left);
+  // дорослому — нові тільки з «Моїх слів»; база — лише коли повторювати нічого і своїх нових нема (перший запуск)
+  const mf=(!KID&&!extraNew)?mwFreeIds():null;
+  const fresh=mf?(mf.length?mf.slice(0,ROUND):(due.length?[]:nextNewIds(left))):nextNewIds(left);
   const items=[];
   // нове слово: знайомство + перевірка; повтор: одна перевірка
   fresh.forEach((id,k)=>{items.push({id,type:"intro"});});
@@ -869,6 +884,13 @@ function startSpeak(){
   const items=pool.slice(0,early?10:15).map(id=>({id,type:"speak",listen:early}));
   Q={mode:"speak",items,i:0,ok:0,total:items.length,base:items.length,fails:{}};openQuiz();
 }
+function mwSentPool(){const mw=S.mw||{},r=[];for(const id in mw){const m=mw[id];if(!LIB[id])continue;(m.ex||[]).forEach((x,k)=>{if(x.es&&x.uk)r.push({id:+id,k});});}return r;}
+function startMwSpeak(){const mw=S.mw||{};const ids=Object.keys(mw).map(Number).filter(id=>LIB[id]&&(mw[id].ex||[]).some(x=>x.es&&x.uk));
+  if(!ids.length){toast("Спершу додай слова з прикладами у «Мої слова»",2600);return;}
+  // найсвіжіші й ті, що погано йдуть, — першими; одне речення на слово
+  const sc=id=>{const p=S.p[id]||[0,0,0,0];return mwLast(mw[id])*1+(p[3]>p[2]?30:0)+Math.random()*3;};
+  const pick=ids.sort((a,b)=>sc(b)-sc(a)).slice(0,12).map(id=>{const ex=mw[id].ex.filter(x=>x.es&&x.uk);return {id,type:"mws",k:mw[id].ex.indexOf(ex[Math.floor(Math.random()*ex.length)])};});
+  const items=shuffle(pick);Q={mode:"speak",items,i:0,ok:0,total:items.length,base:items.length,fails:{}};openQuiz();}
 let TRI=null;
 function startTriage(){
   const ids=[];LIB.forEach((e,id)=>{if(e[5]&&!S.p[id])ids.push(id);});
@@ -891,7 +913,7 @@ function head(){
   const pct=Q.items.length?100*Q.i/Q.items.length:0;
   return `<div class="qtop"><button class="btn" id="qClose" type="button" aria-label="Закрити">✕</button><div class="bar"><i style="width:${pct}%"></i></div>${Q.combo>=3?`<span class="combo">🔥 ${Q.combo}</span>`:""}<button class="mute" id="qMute" type="button" aria-label="${S.mute?"Увімкнути звук":"Тихий режим"}" title="${S.mute?"Увімкнути звук":"Тихий режим: без звуків і без питань на слух"}">${S.mute?"🔇":"🔊"}</button></div>`;
 }
-function spkBtn(id,kind,big){return `<span class="spkwrap"><button class="speak${big?"":" sm"}" type="button" data-say="${id}" data-kind="${kind}" aria-label="Озвучити">${ICON_SPK}</button><button class="slowbtn" type="button" data-say="${id}" data-kind="${kind}" data-slow="1" aria-label="Повільніше" title="Повільніше">🐢</button></span>`;}
+function spkBtn(id,kind,big){if(kind==="x"&&id>=MW0&&LIB[id]&&LIB[id][3])return `<a class="sdl" href="${sdUrl(LIB[id][3])}" target="_blank" rel="noopener" data-ext>🔊 слухати</a>`;return `<span class="spkwrap"><button class="speak${big?"":" sm"}" type="button" data-say="${id}" data-kind="${kind}" aria-label="Озвучити">${ICON_SPK}</button><button class="slowbtn" type="button" data-say="${id}" data-kind="${kind}" data-slow="1" aria-label="Повільніше" title="Повільніше">🐢</button></span>`;}
 function drawQ(){
   const V=$("quizView");
   if(Q.i>=Q.items.length){
@@ -899,15 +921,15 @@ function drawQ(){
     const knew=Q.items.slice(0,Q.base).filter(x=>S.p[x.id]&&S.p[x.id][0]>=3).length;
     const msg=tri?`Знаєш ${knew} з ${Q.base}. Знайомі перевіримо через 2 дні, решту вчимо першими.`:
       Q.mode==="speak"?`Сказано ${Q.base} ${plural(Q.base,"фразу","фрази","фраз")} вголос`
-      :`+${Q.newN||0} ${plural(Q.newN||0,"нове слово","нові слова","нових слів")} · сьогодні ${newToday()} з ${S.daily}${Q.base&&!KID?` · точність ${Math.round(100*Q.ok/Q.base)}%`:""}`;
+      :!KID?`+${Q.newN||0} ${plural(Q.newN||0,"нове слово","нові слова","нових слів")} ${Q.base-(Q.newN||0)>0?` · повторено ${Q.base-(Q.newN||0)}`:""}${Q.base?` · точність ${Math.round(100*Q.ok/Q.base)}%`:""}`:`+${Q.newN||0} ${plural(Q.newN||0,"нове слово","нові слова","нових слів")} · сьогодні ${newToday()} з ${S.daily}${Q.base&&!KID?` · точність ${Math.round(100*Q.ok/Q.base)}%`:""}`;
     if(tri){S.triage=true;persist();}
     const pct=Q.base?Q.ok/Q.base:1, title=tri?"¡Hecho!":pct>=.85?"¡Muy bien!":"¡Bien hecho!";
     const miss=Object.keys(Q.fails).map(Number);
     const missHtml=miss.length?`<div class="missed"><div class="qhint" style="display:block">Ще потренуємо</div>${miss.map(id=>`<div>${spkBtn(id,"w",false)}<span><b>${esc(LIB[id][0])}</b> — ${esc(LIB[id][6])}</span></div>`).join("")}</div>`:"";
     const more=tri&&Q.rest>0?`<button class="btn big" id="qMore" type="button">Ще ${Math.min(60,Q.rest)} знайомих слів</button>`:"";
-    const leftNew=Math.max(0,S.daily-newToday()), dueN=dueList().length, ri=roundInfo();
+    const leftNew=leftNewN(), dueN=dueList().length, ri=roundInfo();
     const nextRound=!tri&&Q.mode==="quiz"&&(leftNew>0||dueN>0);
-    const roundTxt=Q.mode==="quiz"?`<div class="roundtag">${leftNew>0?`Раунд ${ri.no-1>0?ri.no-1:1} з ${ri.total} готовий`:"Слова на сьогодні готові"}</div>`:"";
+    const roundTxt=Q.mode==="quiz"&&!KID?`<div class="roundtag">${leftNew+dueN>0?`Ще ${leftNew} нових · ${dueN} повторити`:"Все повторено на сьогодні"}</div>`:Q.mode==="quiz"?`<div class="roundtag">${leftNew>0?`Раунд ${ri.no-1>0?ri.no-1:1} з ${ri.total} готовий`:"Слова на сьогодні готові"}</div>`:"";
     V.innerHTML=`<div class="card done-card">${roundTxt}<div class="qword">${title}</div><div class="qsub">${msg}</div>${missHtml}
       ${nextRound?`<button class="btn main big" id="qRound" type="button">Наступний раунд →</button><button class="btn big" id="qBack" type="button">Перерва</button>`
       :`<button class="btn main big" id="qBack" type="button">${tri?"Далі: нові слова →":"Готово"}</button>`}${more}</div>`;
@@ -953,6 +975,20 @@ function drawQ(){
     let gb=false;
     $("gYes").onclick=()=>{if(gb)return;gb=true;if(!Q.fails[it.id])Q.ok++;logAdd("sp",1);persist();Q.i++;drawQ();};
     $("gNo").onclick=()=>{if(gb)return;gb=true;Q.fails[it.id]=1;logAdd("sp",1);persist();Q.items.push({id:it.id,type:"speak"});Q.i++;drawQ();};
+  } else if(it.type==="mws"){
+    const m=S.mw[it.id], x=m.ex[it.k]||m.ex[0];
+    h+=`<div class="qcard"><div class="qhint">Скажи іспанською вголос</div><div class="qword" style="font-size:clamp(22px,6vw,30px)">${esc(x.uk)}</div><div id="spHint" hidden class="hintw">${esc(m.es)}</div>
+      <div id="spAns" hidden style="display:flex;flex-direction:column;gap:8px;align-items:center;width:100%"><div class="qex">${markWord(x.es,mwKey(m.es))}</div>${x.tr?`<div class="mwtr">[${esc(x.tr)}]</div>`:""}
+        <div class="row" style="justify-content:center"><a class="sdl" href="${sdUrl(x.es)}" target="_blank" rel="noopener" data-ext>🔊 слухати речення</a><button class="btn" type="button" id="mwW">🔊 ${esc(m.es)}</button></div>${hookHtml(it.id)}</div></div>
+      <div class="grade" id="spBtns"><button class="btn big" id="spHintBtn" type="button">Підказка</button><button class="btn main big" id="spShow" type="button"><kbd>Enter</kbd>Відповідь</button></div>
+      <div class="grade" id="spGrade" hidden><button class="btn big no" id="gNo" type="button"><kbd>←</kbd>Ще не вийшло</button><button class="btn big ok" id="gYes" type="button"><kbd>→</kbd>Вийшло</button></div>`;
+    V.innerHTML=h;
+    $("spHintBtn").onclick=()=>{$("spHint").hidden=false;$("spHintBtn").disabled=true;};
+    $("spShow").onclick=()=>{$("spAns").hidden=false;$("spBtns").hidden=true;$("spHint").hidden=false;$("spGrade").hidden=false;};
+    $("mwW").onclick=()=>liveSay(m.es).catch(()=>toast("Живого запису немає — відкрий Forvo у «Мої слова»",2600));
+    let gb=false;
+    $("gYes").onclick=()=>{if(gb)return;gb=true;if(!Q.fails[it.id])Q.ok++;logAdd("sp",1);persist();Q.i++;drawQ();};
+    $("gNo").onclick=()=>{if(gb)return;gb=true;if(!Q.fails[it.id]){Q.fails[it.id]=1;Q.items.push({id:it.id,type:"mws",k:it.k});}logAdd("sp",1);persist();Q.i++;drawQ();};
   } else if(it.type==="say"||it.type==="hear"){
     const say=it.type==="say", pf=patFor(it.id);
     h+=`<div class="qcard">${say?`<div class="qhint">Скажи іспанською вголос</div><div class="qword" style="font-size:clamp(24px,7vw,34px)">${esc(e[6])}</div>`
@@ -998,10 +1034,16 @@ function drawQ(){
       if(ok)setTimeout(()=>{if(Q&&Q.items[Q.i]===it&&$("qNext")){Q.i++;drawQ();}},1500);
     });
   }
+  V.querySelectorAll("[data-ext]").forEach(a=>a.onclick=ev=>{try{if(TGW&&TGW.openLink){ev.preventDefault();TGW.openLink(a.href);}}catch(e){}});
   $("qClose").onclick=closeQuiz;
   if($("qMute"))$("qMute").onclick=()=>{S.mute=!S.mute;persist();$("qMute").textContent=S.mute?"🔇":"🔊";toast(S.mute?"Тихий режим: без звуків і питань на слух":"Звук увімкнено",1800);};
   V.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>libSay(+b.dataset.say,b.dataset.kind,!!b.dataset.slow).catch(()=>{}));
 }
+$("pRep").onclick=()=>{const due=dueList().length;if(due+leftNewN()>0)startQuiz();else startQuiz(10);};
+$("pSent").onclick=()=>startMwSpeak();
+$("pPat").onclick=()=>{show("phrases");};
+$("pMine").onclick=()=>{show("words");setWs("mine");};
+$("ptHome").onclick=()=>show("today");
 $("stQuiz").onclick=()=>{const due=dueList().length,left=Math.max(0,S.daily-newToday());startQuiz(due+left>0?0:10);};
 $("stStory").onclick=()=>show("stories");
 $("stPat").onclick=()=>{show("phrases");openPt(ptDay());};
@@ -1043,7 +1085,7 @@ $("moreBtn").onclick=()=>{wShown+=120;renderWords();};
 $("search").addEventListener("input",e=>{wq=e.target.value;renderWords(true);});
 document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{wf=b.dataset.f;document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));renderWords(true);});
 // ----- Мої слова -----
-let wsMode=ls.get("e2k_ws")==="mine"?"mine":"all", mwWhen="all", mwTp="";
+let wsMode=KID?"all":(ls.get("e2k_ws")||"mine"), mwWhen="all", mwTp="";
 const ddmm=d=>{const t=new Date(d*86400000);return t.getUTCDate()+"."+String(t.getUTCMonth()+1).padStart(2,"0");};
 const mwLast=m=>{let x=m.d||0;(m.h||[]).forEach(h=>{if(h[1]==="a"||h[1]==="u")x=Math.max(x,h[0]);});return x;};
 const forvo=es=>"https://forvo.com/word/"+encodeURIComponent(mwKey(es))+"/#es";
@@ -1068,13 +1110,13 @@ function renderMine(){if(!$("mwList"))return;
   $("mwList").innerHTML=rows.map(id=>{const m=mw[id],st=status(id);
     return `<details class="mwc" data-mid="${id}"><summary><b>${esc(m.es)}</b><span>${esc(m.uk)}</span><i class="dot s${st}"></i></summary><div class="mwb">
       ${m.tr?`<div class="mwtr">[${esc(m.tr)}]</div>`:""}
-      <div class="row"><button class="btn" type="button" data-msay="${id}">🔊 Слухати</button><a class="btn" href="${forvo(m.es)}" target="_blank" rel="noopener" data-fv="${esc(forvo(m.es))}">🔊 Forvo</a></div>
+      <div class="row"><button class="btn" type="button" data-msay="${id}">🔊 Живий голос</button><a class="btn" href="${forvo(m.es)}" target="_blank" rel="noopener" data-fv="${esc(forvo(m.es))}">🔊 Forvo</a></div>
       ${hookHtml(id)||`<div class="muted" style="font-size:14px">Гачка ще немає</div>`}
-      ${(m.ex||[]).map(x=>`<div class="mwex"><div class="es">${esc(x.es)}</div>${x.tr?`<small>${esc(x.tr)}</small>`:""}${x.uk?`<span>${esc(x.uk)}</span>`:""}</div>`).join("")}
+      ${(m.ex||[]).map(x=>`<div class="mwex"><div class="es">${esc(x.es)}</div>${x.tr?`<small>${esc(x.tr)}</small>`:""}${x.uk?`<span>${esc(x.uk)}</span>`:""}<a class="sdl" href="${sdUrl(x.es)}" target="_blank" rel="noopener" data-fv="${esc(sdUrl(x.es))}">🔊 слухати</a></div>`).join("")}
       <div class="row" style="gap:6px">${m.src==="life"?`<span class="tag life">з життя</span>`:`<span class="tag">базовий список</span>`}${m.tp?`<span class="tag k">${esc(m.tp)}</span>`:""}${st===2?`<span class="tag n">вивчено</span>`:st===1?`<span class="tag l">вчу</span>`:`<span class="tag">чекає в тесті</span>`}</div>
       ${histHtml(m)}</div></details>`;}).join("")
     ||`<div class="card muted" style="font-size:15px">${all.length?"За цим фільтром слів немає.":"Тут з'являться слова з чату-тренера. Встав JSON-блок вище й натисни «Імпортувати»."}</div>`;
-  $("mwList").querySelectorAll("[data-msay]").forEach(b=>b.onclick=()=>libSay(+b.dataset.msay,"w").catch(()=>toast("Озвучка недоступна на цьому пристрої — натисни «Forvo»",2800)));
+  $("mwList").querySelectorAll("[data-msay]").forEach(b=>b.onclick=()=>liveSay(S.mw[b.dataset.msay].es).catch(()=>toast("Живого запису цього слова немає — натисни «Forvo»",2800)));
   $("mwList").querySelectorAll("[data-fv]").forEach(a=>a.onclick=ev=>{try{if(TGW&&TGW.openLink){ev.preventDefault();TGW.openLink(a.dataset.fv);}}catch(e){}});
 }
 document.querySelectorAll("[data-ws]").forEach(b=>b.onclick=()=>setWs(b.dataset.ws));
@@ -1087,6 +1129,7 @@ $("mwGo").onclick=()=>{const R=$("mwRes");R.hidden=false;
     if(r.add+r.upd){$("mwTxt").value="";hap("ok");beep(true);mwWhen="all";mwTp="";}else hap("no");
     renderMine();}
   catch(e){R.className="mwres err";R.innerHTML=`<b>Не імпортовано.</b> ${esc(e.message)}`;hap("no");}};
+if(KID)document.querySelector(".seg").hidden=true;
 setWs(wsMode);
 $("wordList").addEventListener("click",e=>{const li=e.target.closest(".li");if(!li)return;openLibSheet(+li.dataset.id);});
 
@@ -1546,6 +1589,8 @@ $("profBtn").onclick=()=>{sheetCtx={kind:"prof"};
 const _closeSheet=closeSheet; closeSheet=function(){$("shSpeak").hidden=false;_closeSheet();};
 applyAccess(); if(S.slow){rate=0.6;$("speed").textContent="0.6×";}
 if(KID){document.documentElement.classList.add("kid");document.querySelector('.tab[data-v="phrases"]').hidden=true;}
+else{document.documentElement.classList.add("lite");["dialogs","phrases"].forEach(v=>document.querySelector(`.tab[data-v="${v}"]`).hidden=true);
+  const tt=document.querySelector('.tab[data-v="today"]');tt.lastChild.textContent="Практика";const hl=document.querySelector(".hero .label");if(hl)hl.textContent="Слово з життя → практика";}
 if(KID){const t=document.querySelector('.tab[data-v="dialogs"]');t.lastChild.textContent="Гра";togetherBtn();
   document.querySelector('[data-f="k"]').hidden=true;document.querySelector(".hero .label").textContent="Іспанська для школи";}
 if(ls.get("e2k_autostart")==="1"){ls.set("e2k_autostart","");setTimeout(()=>{$("onb").hidden=true;startQuiz();},300);}
