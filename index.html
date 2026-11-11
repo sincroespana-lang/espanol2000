@@ -45,6 +45,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .tabs-in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 html.kid .tabs-in{grid-template-columns:repeat(4,1fr)}
 html.lite .tabs-in{grid-template-columns:repeat(3,1fr)}
+html.lite #mwImp{display:none!important}
 html.lite .card.goal,html.lite #todayHome>.kpis,html.lite #planCard,html.lite #weekCard,html.lite #histCard{display:none!important}
 .pbtn{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;text-align:left;width:100%;border:1px solid var(--line);background:var(--paper);color:var(--fg);border-radius:14px;padding:14px;cursor:pointer;font:inherit}
 .pbtn .ic{font-size:26px;text-align:center}.pbtn b{display:block;font-size:17px}.pbtn small{color:var(--muted);font-size:14px}.pbtn em{font-style:normal;color:var(--muted);font-size:22px}
@@ -360,8 +361,6 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
       </div>
       <div class="card">
         <h2>Налаштування</h2>
-        <label class="tgl"><input type="checkbox" id="setBig"> Великий текст</label>
-        <label class="tgl"><input type="checkbox" id="setSlow"> Повільний звук</label>
         <div class="row"><span class="muted" style="font-size:14px">Нових слів на день:</span>
           <button class="chip" type="button" data-daily="5">5</button>
           <button class="chip" type="button" data-daily="10">10</button>
@@ -482,7 +481,6 @@ html.kid .qword{font-size:clamp(34px,10vw,48px)} html.kid .opt{font-size:19px;pa
         <button type="button" data-v="work"><b>💼</b><span>Робота</span></button>
         <button type="button" data-v="school"><b>🏫</b><span>Школа</span></button>
       </div>
-      <label class="tgl"><input type="checkbox" id="onbBig"> Великий текст і повільний звук</label>
       <span class="muted" style="font-size:13px">Усе можна змінити будь-коли.</span>
     </div>
     <button class="btn" id="onbZero" type="button" style="align-self:center">Я починаю з нуля — без перевірки знайомих слів</button>
@@ -782,10 +780,10 @@ function renderToday(){
     $("pracCard").hidden=false;
     $("pRepSub").textContent=due+nNew?[due?`${due} повторити`:"",nNew?`${nNew} ${plural(nNew,"нове","нових","нових")}`:""].filter(Boolean).join(" · "):"на сьогодні все повторено ✓";
     $("pSentSub").textContent=nS?`${Math.min(12,nMw)} ${plural(Math.min(12,nMw),"речення","речення","речень")} · кажеш вголос`:"з'явиться, коли додаси слова з прикладами";
-    $("pMineSub").textContent=nMw?`${nMw} ${plural(nMw,"слово","слова","слів")}${tAdd?` · сьогодні +${tAdd}`:""} · додати нові`:"додай перші слова з чату-тренера";
+    $("pMineSub").textContent=nMw?`${nMw} ${plural(nMw,"слово","слова","слів")}${tAdd?` · сьогодні +${tAdd}`:""} · додати нові`:"слова з бота-тренера з'являться тут";
     $("pSent").disabled=!nS;
     $("heroSub").textContent=(h<12?"Доброго ранку":h<20?"Доброго дня":"Доброго вечора")+(streak()?` · ${streak()} ${plural(streak(),"день","дні","днів")} поспіль`:"");
-    go=!S.triage&&!nMw?["Почати · 3 хв",startTriage]:due+nNew?[due?`Повторити · ${due+nNew}`:`Нові слова · ${nNew}`,()=>startQuiz()]:nS?["Речення вголос",startMwSpeak]:nMw?["+10 слів із бази",()=>startQuiz(10)]:["Додати мої слова",()=>{show("words");setWs("mine");}];
+    go=!S.triage&&!nMw?["Почати · 3 хв",startTriage]:due+nNew?[due?`Повторити · ${due+nNew}`:`Нові слова · ${nNew}`,()=>startQuiz()]:nS?["Речення вголос",startMwSpeak]:nMw?["+10 слів із бази",()=>startQuiz(10)]:["+10 слів із бази",()=>startQuiz(10)];
   }
   $("heroGo").textContent=go[0]+" →"; $("heroGo").onclick=go[1];
   document.querySelectorAll("[data-daily]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.daily===S.daily));
@@ -815,12 +813,12 @@ document.querySelectorAll(".onb [data-g]").forEach(g=>g.querySelectorAll("button
   hap("tap");}));
 const MIN2DAILY={"5":5,"10":10,"20":20,"60":45};
 function applyOnb(){S.onb=true;S.kind=OB.who;S.mins=+OB.min;S.goal=OB.goal;S.daily=MIN2DAILY[OB.min]||20;
-  S.big=S.slow=$("onbBig").checked; if(S.slow)rate=0.6; S.start=today(); applyAccess(); persist(); $("onb").hidden=true;}
+  S.big=S.slow=false; S.start=today(); applyAccess(); persist(); $("onb").hidden=true;}
 $("onbGo").onclick=async()=>{applyOnb(); if(S.kind==="kid"){S.triage=true;persist();await flush();ls.set("e2k_autostart","1");location.reload();} else startTriage();};
 $("onbZero").onclick=async()=>{applyOnb();S.triage=true;persist();if(S.kind==="kid"&&!KID){await flush();ls.set("e2k_autostart","1");location.reload();return;}renderToday();startQuiz();};
 document.querySelectorAll("[data-daily]").forEach(b=>b.onclick=()=>{S.daily=+b.dataset.daily;persist();renderToday();});
-$("setBig").onchange=e=>{S.big=e.target.checked;applyAccess();persist();};
-$("setSlow").onchange=e=>{S.slow=e.target.checked;rate=S.slow?0.6:0.8;$("speed").textContent=rate+"×";persist();};
+if($("setBig"))$("setBig").onchange=e=>{S.big=e.target.checked;applyAccess();persist();};
+if($("setSlow"))$("setSlow").onchange=e=>{S.slow=e.target.checked;rate=S.slow?0.6:0.8;$("speed").textContent=rate+"×";persist();};
 
 // ===== ТЕСТ =====
 let Q=null; // {mode, items:[{id,type}], i, ok, total}
@@ -1115,7 +1113,7 @@ function renderMine(){if(!$("mwList"))return;
       ${(m.ex||[]).map(x=>`<div class="mwex"><div class="es">${esc(x.es)}</div>${x.tr?`<small>${esc(x.tr)}</small>`:""}${x.uk?`<span>${esc(x.uk)}</span>`:""}<a class="sdl" href="${sdUrl(x.es)}" target="_blank" rel="noopener" data-fv="${esc(sdUrl(x.es))}">🔊 слухати</a></div>`).join("")}
       <div class="row" style="gap:6px">${m.src==="life"?`<span class="tag life">з життя</span>`:`<span class="tag">базовий список</span>`}${m.tp?`<span class="tag k">${esc(m.tp)}</span>`:""}${st===2?`<span class="tag n">вивчено</span>`:st===1?`<span class="tag l">вчу</span>`:`<span class="tag">чекає в тесті</span>`}</div>
       ${histHtml(m)}</div></details>`;}).join("")
-    ||`<div class="card muted" style="font-size:15px">${all.length?"За цим фільтром слів немає.":"Тут з'являться слова з чату-тренера. Встав JSON-блок вище й натисни «Імпортувати»."}</div>`;
+    ||`<div class="card muted" style="font-size:15px">${all.length?"За цим фільтром слів немає.":(KID?"Тут з'являться слова з чату-тренера.":"Тут з'являться слова, які ти розбереш із ботом-тренером.")}</div>`;
   $("mwList").querySelectorAll("[data-msay]").forEach(b=>b.onclick=()=>liveSay(S.mw[b.dataset.msay].es).catch(()=>toast("Живого запису цього слова немає — натисни «Forvo»",2800)));
   $("mwList").querySelectorAll("[data-fv]").forEach(a=>a.onclick=ev=>{try{if(TGW&&TGW.openLink){ev.preventDefault();TGW.openLink(a.dataset.fv);}}catch(e){}});
 }
@@ -1587,7 +1585,7 @@ $("profBtn").onclick=()=>{sheetCtx={kind:"prof"};
   $("addProf").onclick=async()=>{const nm=$("newProf").value.trim();if(!nm){$("newProf").focus();return;}await flush();
     const id=String(Date.now()%1e8);PROF.list.push({id,name:nm});PROF.cur=id;await saveProf();location.reload();};};
 const _closeSheet=closeSheet; closeSheet=function(){$("shSpeak").hidden=false;_closeSheet();};
-applyAccess(); if(S.slow){rate=0.6;$("speed").textContent="0.6×";}
+S.big=S.slow=false; applyAccess();
 if(KID){document.documentElement.classList.add("kid");document.querySelector('.tab[data-v="phrases"]').hidden=true;}
 else{document.documentElement.classList.add("lite");["dialogs","phrases"].forEach(v=>document.querySelector(`.tab[data-v="${v}"]`).hidden=true);
   const tt=document.querySelector('.tab[data-v="today"]');tt.lastChild.textContent="Практика";const hl=document.querySelector(".hero .label");if(hl)hl.textContent="Слово з життя → практика";}
